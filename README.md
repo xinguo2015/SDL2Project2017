@@ -4,7 +4,7 @@
 #### 注意事项
 - 不要改动此目录的任何内容
 - 不要改动此目录的任何内容
-- 将自己的Visual Studio工程放在目录 **SDL2Projects** 中
+- 将自己的Visual Studio工程放在目录 **Projects** 中
 
 #### 目录说明
 - Media    -- 程序运行所需的字体，图像，声音等文件
@@ -15,9 +15,9 @@
 
 
 #### 建立工程的简单方法
-1. 在SDL2Project中建立一个子目录，娶一个自己喜欢的名字，例如 atest
-2. 将SDL2Project中的Sample.zip解压到atest中
-3. 进入atest目录，确认里面有文件如下：
+1. 在Project中建立一个子目录，娶一个自己喜欢的名字，例如 ATest
+2. 将Project中的Sample.zip解压到ATest中
+3. 进入ATest目录，确认里面有文件如下：
  - CMakeList.txt
  - ImSDL2GUI.sln
  - ImSDL2GUI.vcxproj
@@ -32,9 +32,8 @@
 工程中的路径设置采用了**相对路径**
 - SDL有关的头文件(.h)的包含路径为：  ..\..\SDL2inc
 - SDL有关的库文件(.lib)的查找路径为：..\..\SDL2libs
-- 为了在执行/调试的时候可以找到SDL有关的DLL，已经将HOME路径设置为：..\..\SDL2libs
-- 同时运行和调试的命令行参数设置为 ..\Media, 使得程序能够找到需要的图像，字体，声音的文件
+- 为了在执行/调试的时候可以找到SDL有关的DLL，已经将HOME路径设置为：..\..\SDL2libs 。同时运行和调试的命令行参数设置为 ..\Media, 使得程序能够找到需要的图像，字体，声音的文件。在VisualStudio进行相关的设置方法如下图：（菜单Project ==> Properties）
+![avatar](Media/mdpic/debugpath.png)
 
-因此，工程文件（mygui.vcxproj）**必需** 位于两级子目录之下（例如SDL2Project/atest），使得VisualStudio都过上面的路径设置正确地找到SDL2inc，SDLlibs目录，从而保证VisualStudio能够正确编译和执行程序。
+工程文件（ImSDL2GUI.vcxproj）已经做了上述的设置。因此它**必需** 位于本文件所在目录的一个2级子目录之中（例如Project/ATest），使得VisualStudio都过上面的路径设置正确地找到SDL2inc，SDLlibs目录，从而保证VisualStudio能够正确编译和执行程序。
 
-![avatar](/home/external/Document/SDL2Project2017/pictures/debugpath.png)
