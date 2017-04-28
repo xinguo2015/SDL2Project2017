@@ -1,4 +1,4 @@
-Projects/**/build
-Projects/**/Debug
-Projects/**/Release
+Projects/*/build
+Projects/*/Debug
+Projects/*/Release
 
