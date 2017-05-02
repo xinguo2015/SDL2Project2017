@@ -1,4 +1,18 @@
 Projects/*/build
 Projects/*/Debug
 Projects/*/Release
+Projects/*/*.opensdf
+Projects/*/*.kdev4
+Projects/*/*.sdf
+Projects/*/*.suo
+Projects/*/.kdev4
+
+Tutorials/*/build
+Tutorials/*/Debug
+Tutorials/*/Release
+Tutorials/*/*.opensdf
+Tutorials/*/.kdev4
+Tutorials/*/*.sdf
+Tutorials/*/*.suo
+Tutorials/*/*.kdev4
 

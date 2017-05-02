@@ -1,19 +1,46 @@
 # SDL2Project2017
 Tutorial code for teaching SDL2
 - Tutorials
- - create window
- - create renderer
- - display image using SDL2_image
- - render text using SDL2_ttf
- - event driven programming
-   - quit event
+  - 01HelloSDL
+    - create window
+    - create renderer
+    - display image 
+    - SDL Event: SDL_QUIT
+  - 02DrawTTFText
+    - render text using SDL2_ttf
+  - 03HelloSDL_Reform
+    - rewrite the HelloSDL example
+    - structured programming model
+      - shared global variables
+      - initApp
+      - handleEvent
+      - display
+	  - endApp
+      - create sub window
+  - 04EvenMouseKey
    - mouse event
-   - key press event
-   - text event
- - play sound using SDL2_mixer
- - graphics user interface (GUI)
-   - button
-   - textinput
-   - slider bar
-- Immediate mode GUI for SDL2 programming
- - ImSDL2GUI
+     - mouse motion
+	 - mouse down
+   - key event
+     - key pressed
+	 - key text
+	 - key modifier
+  - 05DrawGeometry
+    - draw basic geometry
+	- point, line, poly lines, rectangle, filled rectangles
+	- a demo to draw fractal koch snow curve
+
+  - 06PlayMixerSound
+	- init SDL_Mixer subsystem
+	- load mp3/wave
+    - play sound using SDL2_mixer
+	- resume/stop playing
+  - 07ImSDL2GUI
+    - Immediate mode graphics user interface (IMGUI)
+    - [An excellent IMGUI tutorial](http://sol.gfxile.net/imgui/index.html)
+      http://sol.gfxile.net/imgui/index.html
+    - write our own GUI controls
+      - text label
+      - button
+      - slider bar
+      - textinput
