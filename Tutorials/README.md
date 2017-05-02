@@ -1,4 +1,4 @@
-# SDL2Project2017
+# SDL2 Tutorial
 Tutorial code for teaching SDL2
 - Tutorials
   - 01HelloSDL
