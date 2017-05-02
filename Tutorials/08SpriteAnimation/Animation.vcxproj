@@ -14,7 +14,7 @@
     <ProjectGuid>{45836E97-E9EF-4741-A77D-A054058B0BFA}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>simpleimgui</RootNamespace>
-    <ProjectName>HelloSDL-Reform</ProjectName>
+    <ProjectName>SpriteAnimation</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HelloSDL-Reform", "HelloSDL-Reform.vcxproj", "{45836E97-E9EF-4741-A77D-A054058B0BFA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpriteAnimation", "Animation.vcxproj", "{45836E97-E9EF-4741-A77D-A054058B0BFA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
