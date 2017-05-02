@@ -2,7 +2,7 @@
 #include "SDL.h"
 #include "util.h"
 
-#ifdef _WIN
+#if (defined _WIN32) || (defined _WIN64)
 #pragma warning(disable:4996) 
 #endif
 

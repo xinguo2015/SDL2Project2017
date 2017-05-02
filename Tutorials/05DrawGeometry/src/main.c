@@ -5,8 +5,9 @@
 #include "SDL.h"
 #include "SDL_ttf.h"
 
-#ifdef _WIN
-#pragma warning(disable:4996)
+
+#if (defined _WIN32) || (defined _WIN64)
+#pragma warning(disable:4996) 
 #endif
 
 char           gMediaPath[256] = "";

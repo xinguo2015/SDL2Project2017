@@ -5,8 +5,9 @@
 #include "SDL_ttf.h"
 #include "util.h"
 
-#ifdef _WIN
-#pragma warning(disable:4996)
+
+#if (defined _WIN32) || (defined _WIN64)
+#pragma warning(disable:4996) 
 #endif
 
 SDL_Rect       gMainWinRect = { 100, 100, 640, 480 };

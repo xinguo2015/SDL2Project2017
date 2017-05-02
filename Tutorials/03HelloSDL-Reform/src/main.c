@@ -5,8 +5,9 @@
 #include "SDL_ttf.h"
 #include "util.h"
 
-#ifdef _WIN
-#pragma warning(disable:4996)
+
+#if (defined _WIN32) || (defined _WIN64)
+#pragma warning(disable:4996) 
 #endif
 
 char           gMediaPath[256] = "../Media";
@@ -43,7 +44,7 @@ void initApp(int argc, char *argv[])
 	}
 	if(1){
 		// Set up sub window
-		SDL_Window* win2  = SDL_CreateWindow( "Sub Window" ,
+		SDL_Window* win2  = SDL_CreateWindow( "Another Window" ,
 			gMainWinRect.x + gMainWinRect.w, gMainWinRect.y, 
 			gMainWinRect.w, gMainWinRect.h, 0 );
 		SDL_Renderer* ren2  = SDL_CreateRenderer( win2, -1, SDL_RENDERER_ACCELERATED );
