@@ -82,10 +82,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\drawText.c" />
-    <ClCompile Include="src\util.c" />
+    <ClCompile Include="src\utilities.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\util.h" />
+    <ClInclude Include="src\utilities.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
