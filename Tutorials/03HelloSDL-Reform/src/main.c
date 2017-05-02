@@ -27,33 +27,21 @@ void initApp(int argc, char *argv[])
 {
 	SDL_SetHint(SDL_HINT_IME_INTERNAL_EDITING, "1" );
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS );
-	// ´´½¨´°¿Ú
+	// åˆ›å»ºçª—å£
 	if( ! (gMainWindow = SDL_CreateWindow(argv[0], gMainWinRect.x, gMainWinRect.y, gMainWinRect.w, gMainWinRect.h, 0) ) ) {
 		printf("Error create SDL window\n");
 		cleanAll();	exit(-1);
 	}
-	// ´´½¨»æÖÆ»·¾³
+	// åˆ›å»ºç»˜åˆ¶ç¯å¢ƒ
 	if( ! (gMainRenderer = SDL_CreateRenderer(gMainWindow, -1, SDL_RENDERER_ACCELERATED)) ) {
 		printf("Error create SDL Renderer\n");
 		cleanAll();	exit(-1);
 	}
-	// ³õÊ¼»¯ true type fontÊ¹ÓÃ
+	// åˆå§‹åŒ– true type fontä½¿ç”¨
 	if ( TTF_Init() < 0 ) {
 		printf("Couldn't initialize TTF: %s\n",SDL_GetError());
 		cleanAll();	exit(-1);
 	}
-	if(1){
-		// Set up sub window
-		SDL_Window* win2  = SDL_CreateWindow( "Another Window" ,
-			gMainWinRect.x + gMainWinRect.w, gMainWinRect.y, 
-			gMainWinRect.w, gMainWinRect.h, 0 );
-		SDL_Renderer* ren2  = SDL_CreateRenderer( win2, -1, SDL_RENDERER_ACCELERATED );
-		SDL_SetRenderDrawColor( ren2 , 128, 128, 128, 255 );
-		// Render empty ( green ) background in win2
-		SDL_RenderClear( ren2 );
-		SDL_RenderPresent( ren2 );
-	}
-	SDL_RaiseWindow(gMainWindow);
 }
 
 void endApp()
@@ -75,9 +63,9 @@ void display()
 		SDL_Texture * texture = loadTextureFromBMP(FullPath("/default/helloSDL.bmp"));
 		SDL_RenderCopy(gMainRenderer, texture, NULL, NULL);
 		SDL_DestroyTexture(texture);
-		// »æÖÆÎÄ×Ö
+		// ç»˜åˆ¶æ–‡å­—
 		drawstring("Hi, there!", gMainWinRect.w/8,20, FullPath("/default/FreeSerif.ttf"), 64, textcolor);
-		textcolor.r = 0; // ºìÉ«
+		textcolor.r = 0; // çº¢è‰²
 		drawstring("Can you see me?", gMainWinRect.w/8,gMainWinRect.h-100, FullPath("/default/FreeSerif.ttf"), 64, textcolor);
 	}
 	// present the result
@@ -122,7 +110,7 @@ int main(int argc, char *argv[])
 		SDL_Event e;
 		if (SDL_PollEvent(&e)) {
 			if (e.type == SDL_QUIT) {
-				break; // ÖÕÖ¹Ó¦ÓÃ³ÌĞò
+				break; // ç»ˆæ­¢åº”ç”¨ç¨‹åº
 			}
 			handleEvent( &e );
 		}

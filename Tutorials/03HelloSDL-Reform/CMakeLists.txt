@@ -4,10 +4,16 @@ PROJECT(Tutorial)
 MESSAGE(STATUS "operation system is ${CMAKE_SYSTEM}")  
 IF (CMAKE_SYSTEM_NAME MATCHES "Linux")  
 	MESSAGE(STATUS "current platform: Linux ")  
-	INCLUDE(FindPkgConfig)
-	PKG_SEARCH_MODULE(SDL2 REQUIRED sdl2)
-	PKG_SEARCH_MODULE(SDL2ttf REQUIRED SDL2_ttf>=2.0.0)
-	INCLUDE_DIRECTORIES(${SDL2_INCLUDE_DIRS} ${SDL2ttf_INCLUDE_DIRS})
+	find_package(PkgConfig)
+	pkg_search_module(SDL2 sdl2)
+	pkg_search_module(SDL2ttf   SDL2_ttf)
+	pkg_search_module(SDL2image SDL2_image)
+	pkg_search_module(SDL2mixer SDL2_mixer)
+	INCLUDE_DIRECTORIES(
+		${SDL2_INCLUDE_DIRS} 
+		${SDL2ttf_INCLUDE_DIRS} 
+		${SDL2image_INCLUDE_DIRS}
+		${SDL2mixer_INCLUDE_DIRS})
 ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Windows")  
 	MESSAGE(STATUS "current platform: Windows")  
 ELSEIF (CMAKE_SYSTEM_NAME MATCHES "FreeBSD")  
@@ -26,5 +32,10 @@ SET(CMAKE_BUILD_TYPE Debug)
 AUX_SOURCE_DIRECTORY(src srcFiles)
 GET_FILENAME_COMPONENT(exeName "${CMAKE_SOURCE_DIR}" NAME)
 ADD_EXECUTABLE(${exeName} ${srcFiles})
-TARGET_LINK_LIBRARIES(${exeName} ${SDL2_LIBRARIES} ${SDL2ttf_LIBRARIES})
+TARGET_LINK_LIBRARIES(${exeName} 
+	${SDL2_LIBRARIES} 
+	${SDL2ttf_LIBRARIES} 
+	${SDL2image_LIBRARIES} 
+	${SDL2mixer_LIBRARIES}
+	-lm )
 
