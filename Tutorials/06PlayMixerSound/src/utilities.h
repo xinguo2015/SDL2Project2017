@@ -4,14 +4,8 @@
 #include "SDL.h"
 #include "SDL_ttf.h"
 
-extern SDL_Rect       gMainWinRect;
-extern SDL_Window *   gMainWindow;
-extern SDL_Renderer * gMainRenderer;
-extern SDL_Color      gBackgroundColor;
-
-extern char gMediaPath[256];
 char * MakePath(char path[], char dir[], char filename[]);
-char *FullPath(char filename[]);
+char * FullPath(char filename[]);
 void  drawrect(int x, int y, int w, int h, int color);
 int   Color2Int(SDL_Color cc);
 SDL_Color Int2Color(int color);

@@ -5,7 +5,7 @@
 #include "SDL.h"
 #include "SDL_mixer.h"
 #include "SDL_ttf.h"
-#include "util.h"
+#include "utilities.h"
 
 
 #if (defined _WIN32) || (defined _WIN64)

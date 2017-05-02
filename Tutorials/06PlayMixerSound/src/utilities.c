@@ -4,7 +4,6 @@
 #include "SDL.h"
 #include "SDL_ttf.h"
 
-
 #if (defined _WIN32) || (defined _WIN64)
 #pragma warning(disable:4996) 
 #endif
@@ -43,7 +42,6 @@ int Color2Int(SDL_Color cc)
 	return (cc.r&0xFF) | ((cc.g&0xFF)<<8) 
 		| ((cc.b&0xFF)<<16) | ((cc.a&0xFF)<<24);
 }
-
 
 SDL_Texture * loadTextureFromBMP(char fileName[])
 {

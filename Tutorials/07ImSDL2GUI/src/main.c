@@ -169,7 +169,8 @@ void display()
 	// draw rectangle
 	imgui_renderer(gMainRenderer);
 	imgui_font(gMainFont);
-	imgui_prepare(); {
+	imgui_prepare(); 
+	{
 		int x = 30, y = 50, w = 80, h = 48;
 		int k, R, G, B;
 		double slidervalue;
@@ -210,18 +211,18 @@ void display()
 		slidervalue = (bgcolor >> 16) & 0xff;
 		if (slider(GenUIID(0), x+100, y, w, h, 0, 255, & slidervalue, 1))
 			bgcolor = (bgcolor & 0x00ffff) | ((int)(slidervalue) << 16);
-		if (slider(GenUIID(0), x+100, y+h+100, h*2+w, w*2, 0, 255, & slidervalue, 1))
-			bgcolor = (bgcolor & 0x00ffff) | ((int)(slidervalue) << 16);
 		// a slider bar to tune the brightness of the background color
 		R = bgcolor & 0xff;  G = (bgcolor >> 8) & 0xff; B = (bgcolor >> 16) & 0xff;
 		slidervalue = (R + G + B)/3;
-		if (slider(GenUIID(0), x+150, y, w, h, 0, 255, & slidervalue, 1)) {
+		if (slider(GenUIID(0), x+150, y+h/2, h*2, w, 0, 255, & slidervalue, 1)) {
 			int chg = (int)slidervalue - (R + G + B)/3;
 			R = CLAMP(R+chg,0,255);
 			G = CLAMP(G+chg,0,255);
 			B = CLAMP(B+chg,0,255);
 			bgcolor = R | (G<<8) | (B<<16);
 		}
+		sprintf(temp, "brightness = %d", (R+G+B)/3);
+		textlabel(GenUIID(0), x+240, y+h/2+30, temp);
 		// show the value of the fgcolor
 		sprintf(temp, "(%3d,%3d,%3d)", bgcolor & 0xff, (bgcolor>>8) & 0xff, (bgcolor>>16) & 0xff);
 		textlabel(GenUIID(0), x, y+=h, temp);
@@ -231,7 +232,8 @@ void display()
 			// text is changed, you can do something here ...
 		}
 		textlabel( GenUIID(0), x,y+50, editstring);
-	} imgui_finish();
+	}
+	imgui_finish();
 	// present the result
 	SDL_RenderPresent(gMainRenderer);
 }

@@ -1,6 +1,6 @@
 #include <string.h>
 #include "SDL.h"
-#include "util.h"
+#include "utilities.h"
 
 #if (defined _WIN32) || (defined _WIN64)
 #pragma warning(disable:4996) 

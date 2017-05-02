@@ -43,7 +43,6 @@ int Color2Int(SDL_Color cc)
 		| ((cc.b&0xFF)<<16) | ((cc.a&0xFF)<<24);
 }
 
-
 SDL_Texture * loadTextureFromBMP(char fileName[])
 {
 	SDL_Surface *surface = SDL_LoadBMP(fileName);
