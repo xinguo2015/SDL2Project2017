@@ -251,7 +251,13 @@ void handleEvent(SDL_Event* e)
 int main(int argc, char *argv[]) 
 {
 	BOOL gameover = FALSE;
-	if( argc>1 ) strcpy(gMediaPath, argv[1]);
+	if( argc>1 ) 
+		strcpy(gMediaPath, argv[1]);
+	else {
+		strcpy(gMediaPath, SDL_GetBasePath());
+		strcat(gMediaPath, "../../../Media");
+	}
+	printf("media path = %s\n", gMediaPath);
 	initApp(argc,argv);
 	if( !loadMedia() ) {
 		cleanAll(); exit(-1);

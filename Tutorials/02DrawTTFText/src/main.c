@@ -1,6 +1,8 @@
 #include <string.h>
 #include "SDL.h"
+#include "SDL_ttf.h"
 #include "utilities.h"
+
 
 #if (defined _WIN32) || (defined _WIN64)
 #pragma warning(disable:4996) 
@@ -16,31 +18,31 @@ SDL_Renderer * gMainRenderer = NULL;
 
 int main(int argc, char *argv[]) 
 {
-	SDL_Surface *surface = NULL;
-	SDL_Texture *texture = NULL;
-	// store media path
-	if( argc==2 ) strcpy(gMediaPath, argv[1]);
+	SDL_Color textcolor = { 255, 255, 0, 255 }; //黑色
+	if( argc>1 ) 
+		strcpy(gMediaPath, argv[1]);
+	else {
+		strcpy(gMediaPath, SDL_GetBasePath());
+		strcat(gMediaPath, "../../../Media");
+	}
+	printf("media path = %s\n", gMediaPath);
 	// Initialize SDL
 	SDL_Init(SDL_INIT_VIDEO);
 	// Create a window via SDL
-	gMainWindow = SDL_CreateWindow("Hello World", gMainWinRect.x, gMainWinRect.y, gMainWinRect.w, gMainWinRect.h, 0);
-	// Load an image and set as the gMainWindow icon
-	surface = SDL_LoadBMP(FullPath("/default/SDLLogo.bmp"));
-	SDL_SetWindowIcon(gMainWindow, surface);
-	SDL_FreeSurface(surface);
+	gMainWindow = SDL_CreateWindow("Draw Text using SDL_ttf", 
+			gMainWinRect.x, gMainWinRect.y, gMainWinRect.w, gMainWinRect.h, 0);
 	// Create rendering context
 	gMainRenderer = SDL_CreateRenderer(gMainWindow, -1, SDL_RENDERER_ACCELERATED);
-	//读入一幅BMP图像
-	surface = SDL_LoadBMP(FullPath("/default/helloSDL.bmp"));
-	//将图像转换为高效率的纹理
-	texture = SDL_CreateTextureFromSurface(gMainRenderer, surface);
-	// 图像不再有用，释放掉
-	SDL_FreeSurface(surface);  
-	// Display the image
+	// 初始化TTF子系统
+	TTF_Init();
 	// 先清除原来的所有内容
+	SDL_SetRenderDrawColor(gMainRenderer, 128, 128, 128, 255); // 灰色
 	SDL_RenderClear(gMainRenderer); //清屏
-	// 显示图像
-	SDL_RenderCopy(gMainRenderer, texture, NULL, NULL);
+	drawstring("Hi, there!", gMainWinRect.w/8,20, 
+		FullPath("/default/FreeSerif.ttf"), 64, textcolor);
+	textcolor.r = 0; // 红色
+	drawstring("Can you see me?", gMainWinRect.w/8,gMainWinRect.h-100, 
+		FullPath("/default/FreeSerif.ttf"), 64, textcolor);
 	// 将绘制内容呈现出来
 	SDL_RenderPresent(gMainRenderer); 
 
@@ -54,7 +56,7 @@ int main(int argc, char *argv[])
 		}
 	}
 	// Destroy and quit
-	SDL_DestroyTexture(texture);
+	TTF_Quit(); // 退出TTF子系统
 	SDL_DestroyRenderer(gMainRenderer);
 	SDL_DestroyWindow(gMainWindow);
 	SDL_Quit();

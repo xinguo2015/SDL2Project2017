@@ -167,7 +167,7 @@ void display()
 		textlabel(GenUIID(0), x, y+=h, temp);
 		// a text input box
 		x = 30; y += 50 ;
-		if( textbox(GenUIID(0), x, y, 500, 30, editstring, sizeof(editstring)-1) ) {
+		if( textbox(GenUIID(0), x, y, 500, 40, editstring, sizeof(editstring)-1) ) {
 			// text is changed, you can do something here ...
 		}
 		textlabel( GenUIID(0), x,y+50, editstring);
@@ -180,7 +180,13 @@ void display()
 int main(int argc, char *argv[]) 
 {
 	int gameover = 0;
-	if( argc>1 ) strcpy(gMediaPath, argv[1]);
+	if( argc>1 ) 
+		strcpy(gMediaPath, argv[1]);
+	else {
+		strcpy(gMediaPath, SDL_GetBasePath());
+		strcat(gMediaPath, "../../../Media");
+	}
+	printf("media path = %s\n", gMediaPath);
 	initApp(argc,argv);
 	imgui_init();
 	// Enter event processing loop 

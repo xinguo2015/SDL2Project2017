@@ -16,3 +16,12 @@ Tutorials/*/*.sdf
 Tutorials/*/*.suo
 Tutorials/*/*.kdev4
 
+Games/*/build
+Games/*/Debug
+Games/*/Release
+Games/*/*.opensdf
+Games/*/.kdev4
+Games/*/*.sdf
+Games/*/*.suo
+Games/*/*.kdev4
+

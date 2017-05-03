@@ -150,12 +150,13 @@ int handleEvent(SDL_Event* e)
 
 int main(int argc, char *argv[]) 
 {
-	if( argc<2 ) {
-		printf("Usage: <media path>\n\n");
-		printf("press enter to quit\n");
-		getchar();	return (-1);
+	if( argc>1 ) 
+		strcpy(gMediaPath, argv[1]);
+	else {
+		strcpy(gMediaPath, SDL_GetBasePath());
+		strcat(gMediaPath, "../../../Media");
 	}
-	strcpy(gMediaPath, argv[1]);
+	printf("media path = %s\n", gMediaPath);
 	initApp(argc,argv);
 	// Enter event processing loop 
 	SDL_StartTextInput();
