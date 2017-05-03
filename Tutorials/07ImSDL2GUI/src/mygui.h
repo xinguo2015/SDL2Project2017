@@ -66,12 +66,13 @@ void imgui_init();
 void imgui_renderer(SDL_Renderer* ren);
 void imgui_font(TTF_Font* font);
 void imgui_prepare();
+int  imgui_update(SDL_Event* e);
 void imgui_finish();
 
 int button(int id, int x, int y, int w, int h, char label[]);
 int slider(int id, int x, int y, int w, int h, double minv, double maxv, double * value, double delta);
 int textlabel(int id, int x, int y, char text[]);
-int textbox(int id, int x, int y, char textbuf[], int maxbuf);
+int textbox(int id, int x, int y, int w, int h, char textbuf[], int maxbuf);
 
 // style and customize settting
 void setButtonClickMovement(int m); // movement when clicked

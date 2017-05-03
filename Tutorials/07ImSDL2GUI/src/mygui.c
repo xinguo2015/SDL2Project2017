@@ -6,10 +6,8 @@
 
 #define SPLIT_COLOR(c) ((c)&0xFF), (((c)>>8)&0xFF), (((c)>>16)&0xFF), (((c)>>24)&0xFF)
 
-static int guiColorBlack  = 0;
-static int guiColorDark   = 0x443322;
-static int guiColorGray   = 0xCCBBAA;
-static int guiColorBright = 0xFFDDCC;
+static int guiColorStill   = 0xCCBBAA;
+static int guiColorHot = 0xFFDDCC;
 static int guiColorWhite  = 0xFFFFFF;
 static int guiColorFocus  = 0xFFEEDD;
 static int guiColorLabel  = 0xFFFF00;
@@ -18,10 +16,9 @@ static int guiColorEdit   = 0xFF00FF;
 static SDL_Renderer * guiRenderer = NULL;
 static TTF_Font *     guiFont = NULL;
 static int            guiFontHeight;
-static int            guiButtonMovement = 2;
+static int            guiButtonSink = 2;
 
 UIState gUIState;
-
 
 void imgui_renderer(SDL_Renderer* ren)
 {
@@ -34,9 +31,9 @@ void imgui_font(TTF_Font* font)
 	guiFontHeight = TTF_FontHeight(font);	
 }
 
-void setButtonClickMovement(int m)
+void setButtonSink(int m)
 {
-	guiButtonMovement = m;
+	guiButtonSink = m;
 }
 
 
@@ -48,6 +45,40 @@ void imgui_init()
 void imgui_prepare()
 {
 	gUIState.hotitem = 0;
+}
+
+int imgui_update(SDL_Event* e)
+{
+	switch (e->type) {
+	case SDL_MOUSEMOTION:
+		// update mouse position
+		gUIState.mousex = e->motion.x;
+		gUIState.mousey = e->motion.y;
+		return 1;
+	case SDL_MOUSEBUTTONDOWN:
+		// update button down state if left-clicking
+		if (e->button.button == 1) {
+			gUIState.mousedown = 1;
+			return 1;
+		}
+		return 0;
+	case SDL_MOUSEBUTTONUP:
+		// update button down state if left-clicking
+		if (e->button.button == 1) {
+			gUIState.mousedown = 0;
+			return 1;
+		}
+		return 0;
+	case SDL_KEYDOWN:
+		// If a key is pressed, report it to the widgets
+		gUIState.keypressed = e->key.keysym.sym;
+		gUIState.keymod = e->key.keysym.mod;
+		return 1;
+	case SDL_TEXTINPUT:
+		gUIState.keychar = e->text.text[0];
+		return 1;
+	}
+	return 0;
 }
 
 void imgui_finish()
@@ -69,6 +100,7 @@ void imgui_finish()
 	gUIState.keychar = 0;
 }
 
+
 SDL_Color makecolor(int color)
 {
 	SDL_Color cc = { SPLIT_COLOR(color) };
@@ -77,7 +109,7 @@ SDL_Color makecolor(int color)
 
 SDL_Rect drawstring(char s[], int x, int y, int color)
 {
-	SDL_Rect rect = { 0,0,0,0 };
+	SDL_Rect rect = { x,y,0,0 };
 	SDL_Surface* surf;
 	SDL_Texture* tex;
 
@@ -88,8 +120,7 @@ SDL_Rect drawstring(char s[], int x, int y, int color)
 	SDL_FreeSurface(surf); //ÊÍ·Åsurface
 	if( !tex ) return rect;
 
-	rect.x = x; rect.y = y;
-	SDL_QueryTexture(tex,NULL,NULL, &rect.w, &rect.h);
+	SDL_QueryTexture(tex, NULL, NULL, &rect.w, &rect.h);
 	SDL_RenderCopy(guiRenderer, tex, NULL, &rect);
 	SDL_DestroyTexture(tex);
 	return rect;
@@ -103,6 +134,12 @@ SDL_Rect calcTextSize(char t[])
 }
 
 void drawrect(int x, int y, int w, int h, int color)
+{
+	SDL_Rect r = {x,y,w,h};
+	SDL_SetRenderDrawColor(guiRenderer, SPLIT_COLOR(color));
+	SDL_RenderDrawRect(guiRenderer, &r);
+}
+void fillrect(int x, int y, int w, int h, int color)
 {
 	SDL_Rect r = {x,y,w,h};
 	SDL_SetRenderDrawColor(guiRenderer, SPLIT_COLOR(color));
@@ -128,29 +165,34 @@ int button(int id, int x, int y, int w, int h, char label[])
 		if (gUIState.activeitem == 0 && gUIState.mousedown)
 			gUIState.activeitem = id;
 	}
-
-	// Render button 
+	// Draw button 
 	if (gUIState.hotitem == id)	{
-		if (gUIState.activeitem == id) {
-			// Button is both 'hot' and 'active'
-			drawrect(x+guiButtonMovement, y+guiButtonMovement, w, h, guiColorBright);
-			drawstring(label, x+guiButtonMovement+alignDX, y+guiButtonMovement+alignDY, guiColorLabel);
+		if ( gUIState.mousedown ) {
+			// if( strcmp(label,"color")==0 )printf("hot mousedown\n");
+			// Button is both 'hot' and mouse is down
+			fillrect(x+guiButtonSink, y+guiButtonSink, w, h, guiColorHot);
+			drawstring(label, x+guiButtonSink+alignDX, y+guiButtonSink+alignDY, guiColorLabel);
 		} else {
+			// if( strcmp(label,"color")==0 )printf("hot only\n");
 			// Button is merely 'hot'
-			drawrect(x, y, w, h, guiColorBright);
-			//guiFontHeight
+			fillrect(x, y, w, h, guiColorHot);
 			drawstring(label, x+alignDX, y+alignDY,guiColorLabel);
 		}
 	} else {
-		// button is not hot, but it may be active    
-		drawrect(x, y, w, h, guiColorGray);
+		// if( strcmp(label,"color")==0 )printf("not hot\n");
+		// button is not hot
+		fillrect(x, y, w, h, guiColorStill);
 		drawstring(label, x+alignDX, y+alignDY, guiColorLabel);
 	}
 
-	// If button is hot and active, but mouse button is not
-	// down, the user must have clicked the button.
-	if (gUIState.mousedown == 0 && gUIState.hotitem == id && gUIState.activeitem == id)
+	// If button is hot and active, but mouse button is not down, 
+	// the user must have clicked the button.
+	if (gUIState.hotitem == id && 
+		gUIState.activeitem == id &&
+		gUIState.mousedown == 0 )
+	{
 		return 1;
+	}
 
 	// Otherwise, no clicky.
 	return 0;
@@ -188,14 +230,14 @@ int slider(int id, int x, int y, int w, int h, double min, double max, double * 
 		drawrect(x-hintsize, y-hintsize, w+hintsize*2, h+hintsize*2, guiColorFocus);
 
 	// render the bar
-	drawrect(x, y, w, h, guiColorGray   );
+	fillrect(x, y, w, h, guiColorStill   );
 	// render the cursor
 	if (gUIState.activeitem == id || gUIState.hotitem == id) {
-		drawrect( vertical ? x+(w-cursize)/2 : x+curpos,
+		fillrect( vertical ? x+(w-cursize)/2 : x+curpos,
 			vertical ? y + curpos : y+(h-cursize)/2, cursize, cursize, guiColorWhite);
 	} else {
-		drawrect( vertical ? x+(w-cursize)/2 : x+curpos,
-			vertical ? y + curpos : y+(h-cursize)/2, cursize, cursize, guiColorBright);
+		fillrect( vertical ? x+(w-cursize)/2 : x+curpos,
+			vertical ? y + curpos : y+(h-cursize)/2, cursize, cursize, guiColorHot);
 	}
 	// If we have keyboard focus, we'll need to process the keys
 	if (gUIState.kbditem == id)
@@ -217,14 +259,14 @@ int slider(int id, int x, int y, int w, int h, double min, double max, double * 
 		case SDLK_UP:
 			// Slide slider up (if not at zero)
 			if (*value > 0) {
-				(*value) -= delta;
+				(*value) = CLAMP(*value - delta, 0, max);
 				return 1;
 			}
 			break;
 		case SDLK_DOWN:
 			// Slide slider down (if not at max)
 			if (*value < max) {
-				(*value) += delta;
+				(*value) = CLAMP(*value + delta, 0, max);
 				return 1;
 			}
 			break;
@@ -248,14 +290,13 @@ int slider(int id, int x, int y, int w, int h, double min, double max, double * 
 	return 0;
 }
 
-int textbox(int id, int x, int y, char textbuf[], int maxbuf)
+int textbox(int id, int x, int y, int w, int h, char textbuf[], int maxbuf)
 {
-	int w = maxbuf*16, h = 32;
 	int len = strlen(textbuf);
 	int cursorpos = 0;
 	int textChanged = 0;
 	// Check whether the button should be hot
-	if (regionhit(x-4, y-4, w+8, h+8))
+	if (regionhit(x, y, w, h))
 	{
 		gUIState.hotitem = id;
 		if (gUIState.activeitem == 0 && gUIState.mousedown)
@@ -266,21 +307,21 @@ int textbox(int id, int x, int y, char textbuf[], int maxbuf)
 		gUIState.kbditem = id;
 	// If we have keyboard focus, show it
 	if (gUIState.kbditem == id)
-		drawrect(x-6, y-6, w+12, h+12, 0xffddee);
+		drawrect(x-2, y-2, w+4, h+4, 0xffddee);
 
 	// Render the text box 
 	if ( gUIState.hotitem == id || gUIState.activeitem == id ) {
 		// 'hot' or 'active'
-		drawrect(x-4, y-4,w+8, h+8, guiColorBright);
+		fillrect(x, y, w, h, guiColorHot);
 	} else {
-		drawrect(x-4, y-4,w+8, h+8, guiColorGray   );
+		fillrect(x, y, w, h, guiColorStill   );
 	}
 
 	// show text
-	cursorpos = x + drawstring(textbuf,x,y, guiColorEdit).w;
+	cursorpos = x+4 + drawstring(textbuf, x+4, y-6, guiColorEdit).w;
 	// Render cursor if we have keyboard focus
 	if ( gUIState.kbditem == id && (SDL_GetTicks() >> 8) & 1)
-		drawstring("_", cursorpos, y, guiColorEdit);
+		drawstring("_", cursorpos, y-6, guiColorEdit);
 
 	// If we have keyboard focus, we'll need to process the keys
 	if (gUIState.kbditem == id)

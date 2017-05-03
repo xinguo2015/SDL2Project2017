@@ -6,7 +6,13 @@
 
 #include "mygui.h"
 
-#pragma warning(disable:4996)
+
+#if (defined _WIN32) || (defined _WIN64)
+
+#pragma warning(disable:4996) 
+
+#endif
+
 
 #ifndef CLAMP
 #define CLAMP(x,min,max) ((x)<(min) ? (min) : ((x)>(max)?(max):(x)) )
@@ -75,73 +81,6 @@ void endApp()
 	SDL_Quit();
 }
 
-int  updateUIState(SDL_Event* e);
-void handleEvent(SDL_Event * e);
-void display();
-
-int main(int argc, char *argv[]) 
-{
-	if( argc>1 ) strcpy(gMediaPath, argv[1]);
-	initApp(argc,argv);
-	imgui_init();
-	// Enter event processing loop 
-	SDL_StartTextInput();
-	display();
-	while ( 1 ) 
-	{
-		SDL_Event e;
-		if (SDL_PollEvent(&e)) {
-			if (e.type == SDL_QUIT) {
-				break; // 终止应用程序
-			}
-			if( updateUIState( &e ) )
-				display();
-			else
-				handleEvent( &e );
-		}
-		// don't take all the cpu time
-		SDL_Delay(10); 
-	}
-	SDL_StopTextInput();
-	endApp();
-
-	return 0;
-}
-
-int updateUIState(SDL_Event* e)
-{
-	switch (e->type) {
-	case SDL_MOUSEMOTION:
-		// update mouse position
-		gUIState.mousex = e->motion.x;
-		gUIState.mousey = e->motion.y;
-		return 1;
-	case SDL_MOUSEBUTTONDOWN:
-		// update button down state if left-clicking
-		if (e->button.button == 1) {
-			gUIState.mousedown = 1;
-			return 1;
-		}
-		return 0;
-	case SDL_MOUSEBUTTONUP:
-		// update button down state if left-clicking
-		if (e->button.button == 1) {
-			gUIState.mousedown = 0;
-			return 1;
-		}
-		return 0;
-	case SDL_KEYDOWN:
-		// If a key is pressed, report it to the widgets
-		gUIState.keypressed = e->key.keysym.sym;
-		gUIState.keymod = e->key.keysym.mod;
-		return 1;
-	case SDL_TEXTINPUT:
-		gUIState.keychar = e->text.text[0];
-		return 1;
-	}
-	return 0;
-}
-
 void handleEvent(SDL_Event *e)
 {
 	switch (e->type) {
@@ -171,6 +110,7 @@ void display()
 	imgui_font(gMainFont);
 	imgui_prepare(); 
 	{
+		int uiid = -1;
 		int x = 30, y = 50, w = 80, h = 48;
 		int k, R, G, B;
 		double slidervalue;
@@ -186,10 +126,9 @@ void display()
 		button(GenUIID(0), x,     y, w, h, "Click");  //put a button 
 		button(GenUIID(0), x+100, y, w, h, "me");     //put a button 
 		// another button
-		if (button(GenUIID(0),x, y+100, w, h, "color" )) 
-			// this button is clicked, randomize the background color
+		if (button(uiid=GenUIID(0),x, y+100, w, h, "color" ))
 			bgcolor = SDL_GetTicks() * 0xc3cac51a;
-		// yet another button
+		// a quit button
 		if (button(GenUIID(0), x+100, y+100, w, h, "quit")) { 
 			// this button is clicked, quit the program
 			SDL_Event ev;
@@ -228,7 +167,7 @@ void display()
 		textlabel(GenUIID(0), x, y+=h, temp);
 		// a text input box
 		x = 30; y += 50 ;
-		if( textbox(GenUIID(0), x, y, editstring, 30) ) {
+		if( textbox(GenUIID(0), x, y, 500, 30, editstring, sizeof(editstring)-1) ) {
 			// text is changed, you can do something here ...
 		}
 		textlabel( GenUIID(0), x,y+50, editstring);
@@ -236,4 +175,33 @@ void display()
 	imgui_finish();
 	// present the result
 	SDL_RenderPresent(gMainRenderer);
+}
+
+int main(int argc, char *argv[]) 
+{
+	int gameover = 0;
+	if( argc>1 ) strcpy(gMediaPath, argv[1]);
+	initApp(argc,argv);
+	imgui_init();
+	// Enter event processing loop 
+	SDL_StartTextInput();
+	while ( !gameover ) 
+	{
+		SDL_Event e;
+		while ( !gameover && SDL_PollEvent(&e)) {
+			if (e.type == SDL_QUIT) {
+				gameover = 1; // 终止应用程序
+				break;
+			}
+			imgui_update( &e );
+			handleEvent( &e );
+		}
+		display();
+		// don't take all the cpu time
+		SDL_Delay(10); 
+	}
+	SDL_StopTextInput();
+	endApp();
+
+	return 0;
 }
