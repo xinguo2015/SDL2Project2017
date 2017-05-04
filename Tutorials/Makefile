@@ -11,7 +11,8 @@ all:
 		cd $(name)/build && cmake .. && make && cd ../../;)
 
 runall:
-	$(foreach name, $(projs), ./$(name)/build/$(name) ../Media;)
+	#$(foreach name, $(projs), ./$(name)/build/$(name) ../Media;)
+	$(foreach name, $(projs), ./$(name)/build/$(name);)
 
 clearBuild:
 	$(foreach name, $(projs), rm -rf $(name)/build/*;)

@@ -16,6 +16,7 @@
 #define FALSE 0
 #define TRUE  1
 
+int            gGameover = 0;
 char           gMediaPath[256] = "";
 SDL_Rect       gMainWinRect = { 100, 100, 640, 480 };
 SDL_Color      gBackgroundColor = { 0, 0, 0, 255 };
@@ -38,7 +39,6 @@ UIState;
 
 UIState uistate;
 
-BOOL doGUI = FALSE;
 //The music that will be played
 Mix_Music *gMusic = NULL;
 //The sound effects that will be used
@@ -216,9 +216,6 @@ int handleEvent(SDL_Event* e)
 				Mix_PlayChannel(-1, gScratch, 0);
 				uistate.music = "music scratch";
 				return 1;
-			case SDLK_7:
-				doGUI = ! doGUI;
-				return 1;
 			case SDLK_9:
 				//If there is no music playing
 				if (Mix_PlayingMusic() == 0) {
@@ -247,6 +244,28 @@ int handleEvent(SDL_Event* e)
 	return 0; 
 }
 
+void runMainLoop()
+{
+	SDL_Event e; // 处理事件
+	while ( !gGameover ) 
+	{
+		while ( !gGameover && SDL_PollEvent(&e)) 
+		{
+			if((e.type == SDL_KEYUP && e.key.keysym.sym==SDLK_ESCAPE) ||
+				e.type == SDL_QUIT) //user close window or press ESC key
+			{
+				gGameover = 1; // 终止应用程序
+			}
+			handleEvent( &e );
+			// other events ...
+		}
+		// 做一些其他的事情。。。。。。。。
+		display();
+		// 延时10ms，避免独霸CPU
+		SDL_Delay(10); 
+	}
+}
+
 int main(int argc, char *argv[]) 
 {
 	if( argc>1 ) 
@@ -255,22 +274,11 @@ int main(int argc, char *argv[])
 		strcpy(gMediaPath, SDL_GetBasePath());
 		strcat(gMediaPath, "../../../Media");
 	}
+	printf("base path = %s\n", SDL_GetBasePath());
 	printf("media path = %s\n", gMediaPath);
+
 	initApp(argc,argv);
-	display();
-	// Enter event processing loop 
-	while ( 1 ) 
-	{
-		SDL_Event e;
-		if (SDL_PollEvent(&e)) {
-			if (e.type == SDL_QUIT ) {
-				break; // 终止应用程序
-			}
-			if( handleEvent( &e ) )
-				display();
-		}
-		SDL_Delay(5); // don't take all the cpu time
-	}
+	runMainLoop(); // Enter main loop 
 	endApp();
 
 	return 0;

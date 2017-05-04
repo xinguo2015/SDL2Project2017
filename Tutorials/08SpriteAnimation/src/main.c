@@ -17,6 +17,7 @@
 #define TRUE  1 
 typedef int BOOL;
 
+int            gGameover = 0;
 char           gMediaPath[256] = "../Media";
 SDL_Rect       gMainWinRect = { 100, 100, 640, 480 };
 //Screen dimension constants
@@ -191,6 +192,11 @@ void initApp(int argc, char *argv[])
 		printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
 		cleanAll(); exit(-1);
 	}
+	if( !loadMedia() ) {
+		cleanAll(); exit(-1);
+	}
+	if( gBackgroundMusic && Mix_PlayingMusic() == 0 ) 
+		Mix_PlayMusic( gBackgroundMusic, -1 ); 
 }
 
 void endApp()
@@ -247,36 +253,41 @@ void handleEvent(SDL_Event* e)
 	}
 }
 
+void runMainLoop()
+{
+	SDL_Event e; // 处理事件
+	while ( !gGameover ) 
+	{
+		while ( !gGameover && SDL_PollEvent(&e)) 
+		{
+			if((e.type == SDL_KEYUP && e.key.keysym.sym==SDLK_ESCAPE) ||
+				e.type == SDL_QUIT) //user close window or press ESC key
+			{
+				gGameover = 1; // 终止应用程序
+			}
+			// other events ...
+			handleEvent( &e );
+		}
+		// other tasks
+		display();
+		// 延时10ms，避免独霸CPU
+		SDL_Delay(10); 
+	}
+}
 
 int main(int argc, char *argv[]) 
 {
-	BOOL gameover = FALSE;
 	if( argc>1 ) 
 		strcpy(gMediaPath, argv[1]);
 	else {
 		strcpy(gMediaPath, SDL_GetBasePath());
 		strcat(gMediaPath, "../../../Media");
 	}
+	printf("base path = %s\n", SDL_GetBasePath());
 	printf("media path = %s\n", gMediaPath);
+
 	initApp(argc,argv);
-	if( !loadMedia() ) {
-		cleanAll(); exit(-1);
-	}
-	if( gBackgroundMusic && Mix_PlayingMusic() == 0 ) 
-		Mix_PlayMusic( gBackgroundMusic, -1 ); 
-	// Enter event processing loop 
-	while ( ! gameover ) 
-	{
-		SDL_Event e;
-		if ( ! gameover && SDL_PollEvent(&e)) {
-			if (e.type == SDL_QUIT) {
-				gameover = TRUE; // 终止应用程序
-			}
-			handleEvent( &e );
-		}
-		display();
-		SDL_Delay(10); 
-	}
+	runMainLoop();// Enter main loop 
 	endApp();
 
 	return 0;

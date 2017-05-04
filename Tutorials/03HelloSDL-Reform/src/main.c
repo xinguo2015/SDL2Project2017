@@ -10,6 +10,7 @@
 #pragma warning(disable:4996) 
 #endif
 
+int            gGameover = 0;
 char           gMediaPath[256] = "../Media";
 SDL_Rect       gMainWinRect = { 100, 100, 640, 480 };
 SDL_Window *   gMainWindow = NULL;
@@ -84,20 +85,31 @@ void handleEvent(SDL_Event* e)
 	case SDL_KEYDOWN:
 		break;
 	case SDL_KEYUP:
-		switch (e->key.keysym.sym) {
-		case SDLK_ESCAPE: 
-			{
-				SDL_Event ev;
-				ev.type = SDL_QUIT; 
-				SDL_PushEvent( &ev );
-			}
-		}
 		break;
 	default: 
 		break;
 	}
 }
 
+void runMainLoop()
+{
+	SDL_Event e; 
+	while ( !gGameover ) 
+	{
+		while ( !gGameover && SDL_PollEvent(&e)) 
+		{
+			if((e.type == SDL_KEYUP && e.key.keysym.sym==SDLK_ESCAPE) ||
+				e.type == SDL_QUIT) //user close window or press ESC key
+			{
+				gGameover = 1; // 终止应用程序
+			}
+			// other events ...
+			handleEvent( &e );
+		}
+		// 做一些其他的事情。。。。。。。。
+		SDL_Delay(10); // 延时10ms，避免独霸CPU
+	}
+}
 
 int main(int argc, char *argv[]) 
 {
@@ -107,24 +119,12 @@ int main(int argc, char *argv[])
 		strcpy(gMediaPath, SDL_GetBasePath());
 		strcat(gMediaPath, "../../../Media");
 	}
+	printf("base path = %s\n", SDL_GetBasePath());
 	printf("media path = %s\n", gMediaPath);
 	initApp(argc,argv);
-	display();
-	// Enter event processing loop 
-	while ( 1 ) 
-	{
-		SDL_Event e;
-		if (SDL_PollEvent(&e)) {
-			if (e.type == SDL_QUIT) {
-				break; // 终止应用程序
-			}
-			handleEvent( &e );
-		}
-		// don't take all the cpu time
-		SDL_Delay(10); 
-	}
+	display(); // 绘制画面
+	runMainLoop(); // main loop 
 	endApp();
-
 	return 0;
 }
 

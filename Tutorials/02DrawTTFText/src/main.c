@@ -8,6 +8,7 @@
 #pragma warning(disable:4996) 
 #endif
 
+int  gGameover = 0;
 char gMediaPath[256] = "../Media";
 /*定义窗口位置(100,100),大小(640,480)*/
 SDL_Rect  gMainWinRect = { 100, 100, 640, 480 };
@@ -25,6 +26,7 @@ int main(int argc, char *argv[])
 		strcpy(gMediaPath, SDL_GetBasePath());
 		strcat(gMediaPath, "../../../Media");
 	}
+	printf("base path = %s\n", SDL_GetBasePath());
 	printf("media path = %s\n", gMediaPath);
 	// Initialize SDL
 	SDL_Init(SDL_INIT_VIDEO);
@@ -35,8 +37,8 @@ int main(int argc, char *argv[])
 	gMainRenderer = SDL_CreateRenderer(gMainWindow, -1, SDL_RENDERER_ACCELERATED);
 	// 初始化TTF子系统
 	TTF_Init();
-	// 先清除原来的所有内容
-	SDL_SetRenderDrawColor(gMainRenderer, 128, 128, 128, 255); // 灰色
+	// 绘制屏幕 
+	SDL_SetRenderDrawColor(gMainRenderer, 128, 128, 128, 255);
 	SDL_RenderClear(gMainRenderer); //清屏
 	drawstring("Hi, there!", gMainWinRect.w/8,20, 
 		FullPath("/default/FreeSerif.ttf"), 64, textcolor);
@@ -45,15 +47,21 @@ int main(int argc, char *argv[])
 		FullPath("/default/FreeSerif.ttf"), 64, textcolor);
 	// 将绘制内容呈现出来
 	SDL_RenderPresent(gMainRenderer); 
-
-	// Enter event processing loop 
-	while ( 1 ) {
-		SDL_Event e;
-		if (SDL_PollEvent(&e)) {
-			if (e.type == SDL_QUIT) {
-				break; // 终止应用程序
+	// Enter main loop 
+	while ( !gGameover ) 
+	{
+		SDL_Event e; // 处理事件
+		while ( !gGameover && SDL_PollEvent(&e)) 
+		{
+			if((e.type == SDL_KEYUP && e.key.keysym.sym==SDLK_ESCAPE) ||
+				e.type == SDL_QUIT) //user close window or press ESC key
+			{
+				gGameover = 1; // 终止应用程序
 			}
+			// other events ...
 		}
+		// 做一些其他的事情。。。。。。。。
+		SDL_Delay(10); // 延时10ms，避免独霸CPU
 	}
 	// Destroy and quit
 	TTF_Quit(); // 退出TTF子系统

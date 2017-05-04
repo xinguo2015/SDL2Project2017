@@ -165,6 +165,7 @@ int main( int argc, char* args[] )
 		strcpy(gMediaPath, SDL_GetBasePath());
 		strcat(gMediaPath, "../");
 	}
+	printf("base path = %s\n", SDL_GetBasePath());
 	printf("media path = %s\n", gMediaPath);
 	if( ! InitApp(argc, args) )
 		return 0; 

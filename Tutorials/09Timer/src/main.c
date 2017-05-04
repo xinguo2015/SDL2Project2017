@@ -12,11 +12,13 @@
 #pragma warning(disable:4996) 
 #endif
 
+int            gGameover = 0;
 char           gMediaPath[256] = "";
 SDL_Rect       gMainWinRect = { 100, 100, 640, 480 };
 SDL_Window *   gMainWindow = NULL;
 SDL_Renderer * gMainRenderer = NULL;
 SDL_Color      gBackgroundColor = { 0, 0, 0, 255 };
+Uint32         gMyTimerEvent = (Uint32)-1;
 
 static void cleanAll()
 {
@@ -184,48 +186,55 @@ void display()
 	SDL_RenderPresent(gMainRenderer);
 }
 
-Uint32 UpdateClock = (Uint32)-1;
 Uint32 timerCallback(Uint32 interval, void* param)
 {
 	//display();
 	//printf("timer\n");
 	SDL_Event e;
-	e.type = UpdateClock;
+	e.type = gMyTimerEvent;
 	SDL_PushEvent(&e);
 	return interval;
 }
+void runMainLoop()
+{
+	SDL_Event e; // 处理事件
+	SDL_TimerID timerID;	
+	// 注册一个时间类型, 增加一个定时器
+	gMyTimerEvent = SDL_RegisterEvents(1); 
+	timerID = SDL_AddTimer(1000, timerCallback, "this is my timer");
+	display();
+	while ( !gGameover ) 
+	{
+		while ( !gGameover && SDL_PollEvent(&e)) 
+		{
+			if((e.type == SDL_KEYUP && e.key.keysym.sym==SDLK_ESCAPE) ||
+				e.type == SDL_QUIT) //user close window or press ESC key
+			{
+				gGameover = 1; // 终止应用程序
+			}
+			// other events ...
+			if ( e.type == gMyTimerEvent )
+				display();
+		}
+		// 做一些其他的事情。。。。。。。。
+		SDL_Delay(10); // 延时10ms，避免独霸CPU
+	}
+	SDL_RemoveTimer( timerID );	
+}
+
 int main(int argc, char *argv[]) 
 {
-	int gameover = 0;
-	SDL_TimerID timerID;	
 	if( argc>1 ) 
 		strcpy(gMediaPath, argv[1]);
 	else {
 		strcpy(gMediaPath, SDL_GetBasePath());
 		strcat(gMediaPath, "../../../Media");
 	}
+	printf("base path = %s\n", SDL_GetBasePath());
 	printf("media path = %s\n", gMediaPath);
+
 	initApp(argc,argv);
-	timerID = SDL_AddTimer(1000, timerCallback, "this is my timer");
-	UpdateClock = SDL_RegisterEvents(1);
-	// Enter event processing loop 
-	display();
-	while ( !gameover ) 
-	{
-		SDL_Event e;
-		while ( !gameover && SDL_PollEvent(&e)) {
-			if( e.type == SDL_QUIT )
-				gameover = 1;
-			else if ( e.type == SDL_KEYDOWN ) {
-				if( e.key.keysym.sym==SDLK_ESCAPE )
-					gameover = 1;
-			}
-			else if ( e.type==UpdateClock )
-				display();
-		}
-		SDL_Delay(10); // don't take all the cpu time
-	}
-	SDL_RemoveTimer(timerID);	
+	runMainLoop(); // Enter main loop 
 	endApp();
 
 	return 0;

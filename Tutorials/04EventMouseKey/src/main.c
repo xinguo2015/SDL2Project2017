@@ -10,11 +10,12 @@
 #pragma warning(disable:4996) 
 #endif
 
+int            gGameover = 0;
+char           gMediaPath[256] = "../Media";
 SDL_Rect       gMainWinRect = { 100, 100, 640, 480 };
 SDL_Window *   gMainWindow = NULL;
 SDL_Renderer * gMainRenderer = NULL;
 SDL_Color      gBackgroundColor = { 0, 0, 0, 255 };
-char gMediaPath[256] = "../Media";
 
 static void cleanAll()
 {
@@ -148,6 +149,28 @@ int handleEvent(SDL_Event* e)
 	return 0; 
 }
 
+void runMainLoop()
+{
+	SDL_Event e; // 处理事件
+	while ( !gGameover ) 
+	{
+		while ( !gGameover && SDL_PollEvent(&e)) 
+		{
+			if((e.type == SDL_KEYUP && e.key.keysym.sym==SDLK_ESCAPE) ||
+				e.type == SDL_QUIT) //user close window or press ESC key
+			{
+				gGameover = 1; // 终止应用程序
+			}
+			// other events ...
+			handleEvent( &e );
+		}
+		// other tasks
+		display();
+		// 延时10ms，避免独霸CPU
+		SDL_Delay(10); 
+	}
+}
+
 int main(int argc, char *argv[]) 
 {
 	if( argc>1 ) 
@@ -156,23 +179,12 @@ int main(int argc, char *argv[])
 		strcpy(gMediaPath, SDL_GetBasePath());
 		strcat(gMediaPath, "../../../Media");
 	}
+	printf("base path = %s\n", SDL_GetBasePath());
 	printf("media path = %s\n", gMediaPath);
 	initApp(argc,argv);
 	// Enter event processing loop 
 	SDL_StartTextInput();
-	display();
-	while ( 1 ) 
-	{
-		SDL_Event e;
-		if (SDL_PollEvent(&e)) {
-			if (e.type == SDL_QUIT ) {
-				break; // 终止应用程序
-			}
-			if( handleEvent( &e ) )
-				display();
-		}
-		SDL_Delay(5); // don't take all the cpu time
-	}
+	runMainLoop();// main loop
 	SDL_StopTextInput();
 	endApp();
 

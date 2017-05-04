@@ -18,6 +18,7 @@
 #define CLAMP(x,min,max) ((x)<(min) ? (min) : ((x)>(max)?(max):(x)) )
 #endif
 
+int            gGameover = 0;
 char           gMediaPath[256] = "../Media";
 SDL_Rect       gMainRect = { 100, 100, 960, 720 };
 SDL_Window *   gMainWindow = NULL;
@@ -79,24 +80,6 @@ void endApp()
 	SDL_DestroyRenderer(gMainRenderer);
 	SDL_DestroyWindow(gMainWindow);
 	SDL_Quit();
-}
-
-void handleEvent(SDL_Event *e)
-{
-	switch (e->type) {
-	case SDL_KEYUP:
-		switch (e->key.keysym.sym) {
-		case SDLK_ESCAPE: 
-			{
-				SDL_Event ev;
-				ev.type = SDL_QUIT; 
-				SDL_PushEvent( &ev );
-			}
-		}
-		break;
-	default:
-		break;
-	}
 }
 
 void display()
@@ -177,36 +160,44 @@ void display()
 	SDL_RenderPresent(gMainRenderer);
 }
 
+void runMainLoop()
+{
+	SDL_Event e; // 处理事件
+	imgui_init();
+	SDL_StartTextInput();
+	while ( !gGameover ) 
+	{
+		while ( !gGameover && SDL_PollEvent(&e)) 
+		{
+			if((e.type == SDL_KEYUP && e.key.keysym.sym==SDLK_ESCAPE) ||
+				e.type == SDL_QUIT) //user close window or press ESC key
+			{
+				gGameover = 1; // 终止应用程序
+			}
+			// other events ...
+			imgui_update( &e );
+		}
+		// other tasks
+		display();
+		// 延时10ms，避免独霸CPU
+		SDL_Delay(10); 
+	}
+	SDL_StopTextInput();
+}
+
 int main(int argc, char *argv[]) 
 {
-	int gameover = 0;
 	if( argc>1 ) 
 		strcpy(gMediaPath, argv[1]);
 	else {
 		strcpy(gMediaPath, SDL_GetBasePath());
 		strcat(gMediaPath, "../../../Media");
 	}
+	printf("base path = %s\n", SDL_GetBasePath());
 	printf("media path = %s\n", gMediaPath);
+
 	initApp(argc,argv);
-	imgui_init();
-	// Enter event processing loop 
-	SDL_StartTextInput();
-	while ( !gameover ) 
-	{
-		SDL_Event e;
-		while ( !gameover && SDL_PollEvent(&e)) {
-			if (e.type == SDL_QUIT) {
-				gameover = 1; // 终止应用程序
-				break;
-			}
-			imgui_update( &e );
-			handleEvent( &e );
-		}
-		display();
-		// don't take all the cpu time
-		SDL_Delay(10); 
-	}
-	SDL_StopTextInput();
+	runMainLoop();// Enter main loop 
 	endApp();
 
 	return 0;
