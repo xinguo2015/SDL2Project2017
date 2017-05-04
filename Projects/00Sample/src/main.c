@@ -4,13 +4,13 @@
 #include <math.h>
 #include "SDL.h"
 #include "SDL_ttf.h"
-#include "utilities.h"
 
 
 #if (defined _WIN32) || (defined _WIN64)
 #pragma warning(disable:4996) 
 #endif
 
+int            gGameover = 0;
 char           gMediaPath[256] = "";
 SDL_Rect       gMainWinRect = { 100, 100, 640, 480 };
 SDL_Window *   gMainWindow = NULL;
@@ -161,22 +161,39 @@ void display()
 	SDL_RenderPresent(gMainRenderer);
 }
 
+void runMainLoop()
+{
+	SDL_Event e; // 处理事件
+	while ( !gGameover ) 
+	{
+		while ( !gGameover && SDL_PollEvent(&e)) 
+		{
+			if((e.type == SDL_KEYUP && e.key.keysym.sym==SDLK_ESCAPE) ||
+				e.type == SDL_QUIT) //user close window or press ESC key
+			{
+				gGameover = 1; // 终止应用程序
+			}
+			// other events ...
+		}
+		// 做一些其他的事情。。。。。。。。
+		SDL_Delay(10); // 延时10ms，避免独霸CPU
+	}
+}
+
 int main(int argc, char *argv[]) 
 {
-	if( argc>1 ) strcpy(gMediaPath, argv[1]);
-	initApp(argc,argv);
-	// Enter event processing loop 
-	display();
-	while ( 1 ) 
-	{
-		SDL_Event e;
-		if (SDL_PollEvent(&e)) {
-			if (e.type == SDL_QUIT ) {
-				break; // 终止应用程序
-			}
-		}
-		SDL_Delay(10); // don't take all the cpu time
+	if( argc>1 ) 
+		strcpy(gMediaPath, argv[1]);
+	else {
+		strcpy(gMediaPath, SDL_GetBasePath());
+		strcat(gMediaPath, "../../../Media");
 	}
+	printf("base path = %s\n", SDL_GetBasePath());
+	printf("media path = %s\n", gMediaPath);
+
+	initApp(argc,argv);
+	display();
+	runMainLoop(); // Enter main loop 
 	endApp();
 
 	return 0;
