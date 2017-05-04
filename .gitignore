@@ -1,6 +1,7 @@
 Projects/*/build
 Projects/*/Debug
 Projects/*/Release
+Projects/*/ipch
 Projects/*/*.opensdf
 Projects/*/*.kdev4
 Projects/*/*.sdf
@@ -10,18 +11,11 @@ Projects/*/.kdev4
 Tutorials/*/build
 Tutorials/*/Debug
 Tutorials/*/Release
+Tutorials/*/ipch
 Tutorials/*/*.opensdf
 Tutorials/*/.kdev4
 Tutorials/*/*.sdf
 Tutorials/*/*.suo
 Tutorials/*/*.kdev4
 
-Games/*/build
-Games/*/Debug
-Games/*/Release
-Games/*/*.opensdf
-Games/*/.kdev4
-Games/*/*.sdf
-Games/*/*.suo
-Games/*/*.kdev4
-
+SDL2Games
