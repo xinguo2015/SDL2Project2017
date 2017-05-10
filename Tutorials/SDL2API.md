@@ -261,7 +261,6 @@ int SDL_SaveBMP(SDL_Surface* surface,
 	- SDL_UnlockSurface
 	- SDL_UpperBlit
 
-
 ## 函数SDL_CreateTextureFromSurface：创建纹理
 
 ```
@@ -361,7 +360,6 @@ SDL_RenderFillRect(renderer, &rectangle);
 int SDL_RenderClear(SDL_Renderer* renderer)
 ```
 清屏的颜色为当前画笔的颜色（通过调用函数SDL_SetRenderDrawColor设置）
-
 
 ## 一些绘制函数
 ```
