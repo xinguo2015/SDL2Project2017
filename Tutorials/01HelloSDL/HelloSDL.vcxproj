@@ -81,7 +81,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\helloSDL.c" />
+    <ClCompile Include="src\main.c" />
     <ClCompile Include="src\utilities.c" />
   </ItemGroup>
   <ItemGroup>

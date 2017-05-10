@@ -81,7 +81,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\drawText.c" />
+    <ClCompile Include="src\main.c" />
     <ClCompile Include="src\utilities.c" />
   </ItemGroup>
   <ItemGroup>
