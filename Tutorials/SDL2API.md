@@ -1,4 +1,9 @@
-# SDL 2.0 API
+# SDL 2.0 API 
+
+在SDL2文档官网可以查询SDL的函数和数据结构的帮助信息。
+SDL2文档官网（按类别） https://wiki.libsdl.org/APIByCategory
+SDL2文档官网（按名称） https://wiki.libsdl.org/CategoryAPI
+以下是部分函数的中文翻译
 
 ## 函数 SDL_Init: 初始化SDL系统
 ```
@@ -23,6 +28,8 @@ int SDL_Init(Uint32 flags)
 | - | - |
 | 0 | 成功|
 |<0 | 失败。可调用 SDL_GetError() 获取相关信息。|
+
+详细资料参考 [SDL2官网文档(SDL_Init)](https://wiki.libsdl.org/SDL_Init)
 
 使用例程：
 ```
@@ -61,7 +68,9 @@ SDL_Window* SDL_CreateWindow(const char* title,
 | h | 窗口的高度（像素）|
 | flags | 0, 或者 SDL_WindowFlags 的组合（按位或操作）|
 
+详细资料参考 [SDL2官网文档(SDL_CreateWindow)](https://wiki.libsdl.org/SDL_CreateWindow)
 
+编程示范：
 ```
 #include "SDL.h"
 #include <stdio.h>
@@ -133,6 +142,8 @@ SDL_Renderer* SDL_CreateRenderer(SDL_Window* window,
 | index | 指定渲染器的驱动, or -1 指定第一个可用的驱动 |
 | flags | 0, or 渲染器选项组合 |
 
+详细资料参考 [SDL2官网文档(SDL_CreateRenderer)](https://wiki.libsdl.org/SDL_CreateRenderer)
+
 使用实例：
 ```
 #include "SDL.h"
@@ -199,14 +210,13 @@ SDL_Surface* SDL_LoadBMP(const char* file)
 返回值：如果成功载入，那么返回一个包含该图像的像面；否则返回NULL。
 
 通过该函数创建的SDL_Surface必须通过函数SDL_FreeSurface释放：
-
 ```
 void SDL_FreeSurface(SDL_Surface* surface)
 ```
 
 相关函数：
-	- SDL_FreeSurface
-	- SDL_SaveBMP
+- SDL_FreeSurface (https://wiki.libsdl.org/SDL_FreeSurface)
+- SDL_SaveBMP (https://wiki.libsdl.org/SDL_SaveBMP)
 
 ## 函数 SDL_SaveBMP：将一个像面内容保存到一个bmp格式的文件中
 ```
@@ -232,6 +242,8 @@ int SDL_SaveBMP(SDL_Surface* surface,
 | SDL_Rect | clip_rect | 裁剪矩形（通过函数SDL_SetClipRect()指定）|
 | SDL_BlitMap* | map | 内部使用（与绘制有关）
 | int | refcount | 被引用的次数 | 
+
+详细资料参考 https://wiki.libsdl.org/SDL_Surface
 
 相关函数：
 	- SDL_ConvertSurface
