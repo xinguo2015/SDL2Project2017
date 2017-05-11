@@ -354,6 +354,121 @@ SDL_RenderFillRect(renderer, &rectangle);
 	- SDL_RenderFillRect
 	- SDL_RenderFillRects
 
+## 函数 SDL_RenderCopy
+将纹理中的部分内容复制到渲染目标中
+```
+int SDL_RenderCopy(SDL_Renderer*   renderer,
+		SDL_Texture*    texture,
+		const SDL_Rect* srcrect,
+		const SDL_Rect* dstrect)
+```
+| 参数名 | 说明 |
+|-|-|
+| renderer | 渲染器
+| texture | 纹理
+| srcrect | 纹理中待复制的矩形区域，或者NULL表示整个纹理
+| dstrect | 目标区域矩形，或则NULL表示整个渲染目标（纹理将被拉伸）
+
+返回值：0 - 表示成功; <0 表示失败。可调用SDL_GetError()获取相关信息。
+
+```
+#include "SDL.h"
+#define SHAPE_SIZE 16
+
+int main(int argc, char *argv[])
+{
+	SDL_Window* Main_Window;
+	SDL_Renderer* Main_Renderer;
+	SDL_Surface* Loading_Surf;
+	SDL_Texture* Background_Tx;
+	SDL_Texture* BlueShapes;
+
+	/* Rectangles for drawing which will specify source (inside the texture)
+	   and target (on the screen) for rendering our textures. */
+	SDL_Rect SrcR;
+	SDL_Rect DestR;
+
+	SrcR.x = 0;
+	SrcR.y = 0;
+	SrcR.w = SHAPE_SIZE;
+	SrcR.h = SHAPE_SIZE;
+
+	DestR.x = 640 / 2 - SHAPE_SIZE / 2;
+	DestR.y = 580 / 2 - SHAPE_SIZE / 2;
+	DestR.w = SHAPE_SIZE;
+	DestR.h = SHAPE_SIZE;
+
+
+	/* Before we can render anything, we need a window and a renderer */
+	Main_Window = SDL_CreateWindow("SDL_RenderCopy Example",
+			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 580, 0);
+	Main_Renderer = SDL_CreateRenderer(Main_Window, -1, SDL_RENDERER_ACCELERATED);
+
+	/* The loading of the background texture. Since SDL_LoadBMP() returns
+	   a surface, we convert it to a texture afterwards for fast accelerated
+	   blitting. */
+	Loading_Surf = SDL_LoadBMP("Background.bmp");
+	Background_Tx = SDL_CreateTextureFromSurface(Main_Renderer, Loading_Surf);
+	SDL_FreeSurface(Loading_Surf); /* we got the texture now -> free surface */
+
+	/* Load an additional texture */
+	Loading_Surf = SDL_LoadBMP("Blueshapes.bmp");
+	BlueShapes = SDL_CreateTextureFromSurface(Main_Renderer, Loading_Surf);
+	SDL_FreeSurface(Loading_Surf);
+
+	/* now onto the fun part.
+	   This will render a rotating selection of the blue shapes
+	   in the middle of the screen */
+	int i;
+	int n;
+	for (i = 0; i < 2; ++i) {
+		for(n = 0; n < 4; ++n) {
+			SrcR.x = SHAPE_SIZE * (n % 2);
+			if (n > 1) {
+				SrcR.y = SHAPE_SIZE;
+			} else {
+				SrcR.y = 0;
+			}
+
+			/* render background, whereas NULL for source and destination
+			   rectangles just means "use the default" */
+			SDL_RenderCopy(Main_Renderer, Background_Tx, NULL, NULL);
+
+			/* render the current animation step of our shape */
+			SDL_RenderCopy(Main_Renderer, BlueShapes, &SrcR, &DestR);
+			SDL_RenderPresent(Main_Renderer);
+			SDL_Delay(500);
+		}
+	}
+
+
+	/* The renderer works pretty much like a big canvas:
+	   when you RenderCopy() you are adding paint, each time adding it
+	   on top.
+	   You can change how it blends with the stuff that
+	   the new data goes over.
+	   When your 'picture' is complete, you show it
+	   by using SDL_RenderPresent(). */
+
+	SDL_DestroyTexture(BlueShapes);
+	SDL_DestroyTexture(Background_Tx);
+	SDL_DestroyRenderer(Main_Renderer);
+	SDL_DestroyWindow(Main_Window);
+	SDL_Quit();
+
+	return 0;
+}
+```
+
+附加说明：
+- 复制过程中，纹理将和目标区域的内容混合在一起，混合的模式可以通过调用函数SDL_SetTextureBlendMode()进行设置。
+- 纹理的颜色值在混合之前将根据颜色调制模式进行调制。调制模式可以通过调用函数SDL_SetTextureColorMod()进行设置。
+- 纹理的alpha值在混合之前将根据alpha调制模式进行调制。调制模式可以通过调用函数SDL_SetTextureAlphaMod()进行设置。
+
+相关函数
+	- SDL_SetTextureAlphaMod
+	- SDL_SetTextureBlendMode
+	- SDL_SetTextureColorMod
 
 ## 函数SDL_RenderClear：清除渲染器的内容（即清屏）。
 ```
