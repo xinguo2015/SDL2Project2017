@@ -63,11 +63,12 @@ void endApp()
 
 void display()
 {
+	SDL_Texture * texture = NULL;
 	// background image
 	SDL_SetRenderDrawColor(gMainRenderer, gBackgroundColor.r, 
 		gBackgroundColor.g, gBackgroundColor.b, gBackgroundColor.a);
 	SDL_RenderClear(gMainRenderer);
-	SDL_Texture * texture = IMG_LoadTexture(gMainRenderer, FullPath("/default/background.png"));
+	texture = IMG_LoadTexture(gMainRenderer, FullPath("/default/background.png"));
 	SDL_RenderCopy(gMainRenderer, texture, NULL, NULL);
 	SDL_DestroyTexture(texture);
 	if( gShowHeart>=1 ) {
