@@ -6,17 +6,21 @@
 
 #define SPLIT_COLOR(c) ((c)&0xFF), (((c)>>8)&0xFF), (((c)>>16)&0xFF), (((c)>>24)&0xFF)
 
-static int guiColorStill   = 0xCCBBAA;
-static int guiColorHot = 0xFFDDCC;
+static int guiColorStill  = 0xCCBBAA;
+static int guiColorHot    = 0xFFDDCC;
+static int guiColorCheck  = 0xFFEEDD;
 static int guiColorWhite  = 0xFFFFFF;
 static int guiColorFocus  = 0xFFEEDD;
-static int guiColorLabel  = 0xFFFF00;
-static int guiColorEdit   = 0xFF00FF;
+static int guiColorEdit   = 0xFFFFFF;
+static int guiColorPicked = 0xFFEEDD;
+//static int guiColorLabel  = 0xFFFF00;
+static int guiColorLabel  = 0x333333;
 
 static SDL_Renderer * guiRenderer = NULL;
 static TTF_Font *     guiFont = NULL;
 static int            guiFontHeight;
 static int            guiButtonSink = 2;
+static int            guiItemHeight = 30;
 
 UIState gUIState;
 
@@ -45,6 +49,20 @@ void imgui_init()
 void imgui_prepare()
 {
 	gUIState.hotitem = 0;
+}
+
+void imgui_finish()
+{
+	if (gUIState.mousedown == 0)
+	{
+		gUIState.activeitem = 0;
+	}
+	// If no widget grabbed tab, clear focus
+	if (gUIState.keypressed == SDLK_TAB)
+		gUIState.kbditem = 0;
+	// Clear the entered key
+	gUIState.keypressed = 0;  
+	gUIState.keychar = 0;
 }
 
 int imgui_update(SDL_Event* e)
@@ -81,24 +99,7 @@ int imgui_update(SDL_Event* e)
 	return 0;
 }
 
-void imgui_finish()
-{
-	if (gUIState.mousedown == 0)
-	{
-		gUIState.activeitem = 0;
-	}
-	else
-	{
-		if (gUIState.activeitem == 0)
-			gUIState.activeitem = -1;
-	}
-	// If no widget grabbed tab, clear focus
-	if (gUIState.keypressed == SDLK_TAB)
-		gUIState.kbditem = 0;
-	// Clear the entered key
-	gUIState.keypressed = 0;  
-	gUIState.keychar = 0;
-}
+
 
 
 SDL_Color makecolor(int color)
@@ -139,6 +140,7 @@ void drawrect(int x, int y, int w, int h, int color)
 	SDL_SetRenderDrawColor(guiRenderer, SPLIT_COLOR(color));
 	SDL_RenderDrawRect(guiRenderer, &r);
 }
+
 void fillrect(int x, int y, int w, int h, int color)
 {
 	SDL_Rect r = {x,y,w,h};
@@ -152,6 +154,7 @@ int regionhit(int x, int y, int w, int h)
 	return (gUIState.mousex > x && gUIState.mousey > y &&
 		gUIState.mousex < x + w && gUIState.mousey < y + h);
 }
+
 // Simple button IMGUI widget
 int button(int id, int x, int y, int w, int h, char label[])
 {
@@ -168,18 +171,15 @@ int button(int id, int x, int y, int w, int h, char label[])
 	// Draw button 
 	if (gUIState.hotitem == id)	{
 		if ( gUIState.mousedown ) {
-			// if( strcmp(label,"color")==0 )printf("hot mousedown\n");
 			// Button is both 'hot' and mouse is down
 			fillrect(x+guiButtonSink, y+guiButtonSink, w, h, guiColorHot);
 			drawstring(label, x+guiButtonSink+alignDX, y+guiButtonSink+alignDY, guiColorLabel);
 		} else {
-			// if( strcmp(label,"color")==0 )printf("hot only\n");
 			// Button is merely 'hot'
 			fillrect(x, y, w, h, guiColorHot);
 			drawstring(label, x+alignDX, y+alignDY,guiColorLabel);
 		}
 	} else {
-		// if( strcmp(label,"color")==0 )printf("not hot\n");
 		// button is not hot
 		fillrect(x, y, w, h, guiColorStill);
 		drawstring(label, x+alignDX, y+alignDY, guiColorLabel);
@@ -198,8 +198,83 @@ int button(int id, int x, int y, int w, int h, char label[])
 	return 0;
 }
 
+int checkbox (int id, int x, int y, int w, int h, char label[], int *value)
+{
+	// Check whether the button should be hot
+	if (regionhit(x, y, w, h))
+	{
+		gUIState.hotitem = id;
+		if (gUIState.activeitem == 0 && gUIState.mousedown)
+			gUIState.activeitem = id;
+	}
+	// Draw radio button
+	fillrect(x,y, w, h, gUIState.hotitem == id ? guiColorHot : guiColorStill);
+	drawrect(x,y, w, h, guiColorCheck);
+	drawstring(label, x+w+4, y-10, guiColorLabel);
+	if ( *value )
+	{
+		SDL_SetRenderDrawColor(guiRenderer, SPLIT_COLOR(guiColorCheck));
+		SDL_RenderDrawLine(guiRenderer, x,y, x+w-1, y+h-1);
+		SDL_RenderDrawLine(guiRenderer, x+1,y, x+w-1, y+h-2);
+		SDL_RenderDrawLine(guiRenderer, x,y+1, x+w-2, y+h-1);
+		SDL_RenderDrawLine(guiRenderer, x,y+h-1, x+w-1, y);
+		SDL_RenderDrawLine(guiRenderer, x+1,y+h-1, x+w-1, y+1);
+		SDL_RenderDrawLine(guiRenderer, x,y+h-2, x+w-2, y);
+	}
+
+	// If button is hot and active, but mouse button is not down, 
+	// the user must have clicked the button.
+	if (gUIState.hotitem == id && 
+		gUIState.activeitem == id &&
+		gUIState.mousedown == 0 )
+	{
+		*value = !(*value);
+		return 1;
+	}
+
+	return 0;
+}
+
+
+int radio(int id, int x, int y, int w, int h, char label[], int reference, int *value)
+{
+	// Check whether the button should be hot
+	if (regionhit(x, y, w, h))
+	{
+		gUIState.hotitem = id;
+		if (gUIState.activeitem == 0 && gUIState.mousedown)
+			gUIState.activeitem = id;
+	}
+	// Draw radio button
+	fillrect(x,y, w, h, gUIState.hotitem == id ? guiColorHot : guiColorStill);
+	drawstring(label, x+w+4, y-10, guiColorLabel);
+	//drawrect(x,y, w, h, guiColorCheck);
+	if ( reference == *value )
+	{
+		SDL_SetRenderDrawColor(guiRenderer, SPLIT_COLOR(0));
+		fillrect(x+w/4,y+h/4, w/2, h/2, guiColorCheck);
+	}
+
+	// If button is hot and active, but mouse button is not down, 
+	// the user must have clicked the button.
+	if (gUIState.hotitem == id && 
+		gUIState.activeitem == id &&
+		gUIState.mousedown == 0 )
+	{
+		if( *value != reference )
+		{
+			*value = reference;
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+
+
 // Simple scroll bar IMGUI widget
-int slider(int id, int x, int y, int w, int h, double min, double max, double * value, double delta)
+int slider(int id, int x, int y, int w, int h, double min, double max, double delta, double * value)
 {
 	int cursize = 16; // cursor size
 	int border = 2;   // distance against the cursor
@@ -369,5 +444,75 @@ int textbox(int id, int x, int y, int w, int h, char textbuf[], int maxbuf)
 int textlabel(int id, int x, int y, char text[])
 {
 	drawstring(text, x, y, guiColorLabel);
+	return 0;
+}
+
+
+static int listitem(int id, int x, int y, int w, int h, char label[], int selected)
+{
+	if (regionhit(x, y, w, h))
+	{
+		gUIState.hotitem = id;
+		if (gUIState.activeitem == 0 && gUIState.mousedown)
+			gUIState.activeitem = id;
+	}
+
+	if (gUIState.hotitem == id	&& gUIState.mousedown )
+		selected = 1;
+
+	if (gUIState.hotitem == id)
+		fillrect(x, y, w, h, guiColorHot);
+	else if ( selected )
+		fillrect(x, y, w, h, guiColorPicked);
+	else
+		fillrect(x, y, w, h, guiColorStill);
+	drawstring(label, x+5, y-10, guiColorLabel);
+
+	// If button is hot and active, but mouse button is not down, 
+	// the user must have clicked the button.
+	if (gUIState.hotitem == id && 
+		gUIState.activeitem == id &&
+		gUIState.mousedown == 0 )
+	{
+		return 1;
+	}
+
+	// Otherwise, no clicky.
+	return 0;
+}
+
+int listbox (int id, int x, int y, int w, int h, char*items[], int nitem, int *liststart, int *value)
+{
+	int needslider = 0;
+	double slidervalue = *liststart;
+	int nShow, k, wext;
+	int newvalue = *value;
+	
+	
+	nShow = CLAMP( (h-4) / guiItemHeight, 1, nitem); 
+	if( nShow<nitem ) needslider = 1;
+
+	fillrect(x,y,w,h,guiColorStill);
+	if( needslider && slider(id+GenUIID(0), x+w-2, y+2, 20, h-4, (double)0, (double)(nitem-nShow), 1.0, &slidervalue) ) {
+		*liststart = (int)(slidervalue+0.1);
+	}
+	
+	wext = nShow<nitem ? w + 20 : w;
+	drawrect(x,  y,  wext,  h,  0x77777777);
+	drawrect(x+1,y+1,wext-2,h-2,0x77777777);
+	
+	for( k = 0; k<nShow; k++ ) {
+		int iid = k + *liststart;
+		if( listitem(id+GenUIID(k), x+2, y+2+k*guiItemHeight, w-4, guiItemHeight, items[iid], iid==*value) )
+			newvalue = iid;
+	}
+
+	if( needslider )
+		drawrect(x+w-4, y, 2, h, 0x77777777);
+	
+	if( *value != newvalue ) {
+		*value = newvalue;
+		return 1;
+	}
 	return 0;
 }

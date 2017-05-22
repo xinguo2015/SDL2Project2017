@@ -82,18 +82,27 @@ void endApp()
 	SDL_Quit();
 }
 
-void display()
+char editstring[50] = "Here to set window title";
+int  bgcolor        = 119|(154<<8)|(209<<16);
+int  checkboxValue  = 1;
+int  radiovalue     = 1;
+int  liststart      = 0;
+int  listvalue      = 1;
+char*listitems[]    = { "1 Apple", 
+						"2 Pear", 
+						"3 Grape", 
+						"4 Rice", 
+						"5 Water", 
+						"6 Salt", 
+						"7 Drink", 
+						"No MORE",
+};
+
+
+void doUI()
 {
-	static char editstring[50] = "some text";
-	static int bgcolor = 119|(154<<8)|(209<<16);
-	SDL_SetRenderDrawColor(gMainRenderer, bgcolor&0xff, (bgcolor>>8)&0xff, (bgcolor>>16)&0xff, (bgcolor>>24)&0xff);
-	SDL_RenderClear(gMainRenderer);
-	// draw rectangle
-	imgui_renderer(gMainRenderer);
-	imgui_font(gMainFont);
 	imgui_prepare(); 
 	{
-		int uiid = -1;
 		int x = 30, y = 50, w = 80, h = 48;
 		int k, R, G, B;
 		double slidervalue;
@@ -109,7 +118,7 @@ void display()
 		button(GenUIID(0), x,     y, w, h, "Click");  //put a button 
 		button(GenUIID(0), x+100, y, w, h, "me");     //put a button 
 		// another button
-		if (button(uiid=GenUIID(0),x, y+100, w, h, "color" ))
+		if (button(GenUIID(0), x, y+100, w, h, "color" ))
 			bgcolor = SDL_GetTicks() * 0xc3cac51a;
 		// a quit button
 		if (button(GenUIID(0), x+100, y+100, w, h, "quit")) { 
@@ -123,50 +132,77 @@ void display()
 		x = 300; w = 22; h = 200;
 		// a slider bar to tune the R channel of the background color
 		slidervalue = bgcolor & 0xff; 
-		if( slider(GenUIID(0), x, y, w, h, 0, 255, & slidervalue, 1)) 
+		if( slider(GenUIID(0), x, y, w, h, 0, 255, 1, & slidervalue)) 
 			bgcolor = (bgcolor & 0xffff00) | (int)slidervalue;
 		// a slider bar to tune the G channel of the background color
 		slidervalue = (bgcolor >> 8) & 0xff;
-		if( slider(GenUIID(0), x+50, y, w, h, 0, 255, & slidervalue, 1) )
+		if( slider(GenUIID(0), x+50, y, w, h, 0, 255, 1, & slidervalue) )
 			bgcolor = (bgcolor & 0xff00ff) | ((int)slidervalue) << 8;
 		// a slider bar to tune the B channel of the background color
 		slidervalue = (bgcolor >> 16) & 0xff;
-		if (slider(GenUIID(0), x+100, y, w, h, 0, 255, & slidervalue, 1))
+		if (slider(GenUIID(0), x+100, y, w, h, 0, 255, 1, & slidervalue))
 			bgcolor = (bgcolor & 0x00ffff) | ((int)(slidervalue) << 16);
-		// a slider bar to tune the brightness of the background color
-		R = bgcolor & 0xff;  G = (bgcolor >> 8) & 0xff; B = (bgcolor >> 16) & 0xff;
-		slidervalue = (R + G + B)/3;
-		if (slider(GenUIID(0), x+150, y+h/2, h*2, w, 0, 255, & slidervalue, 1)) {
-			int chg = (int)slidervalue - (R + G + B)/3;
-			R = CLAMP(R+chg,0,255);
-			G = CLAMP(G+chg,0,255);
-			B = CLAMP(B+chg,0,255);
-			bgcolor = R | (G<<8) | (B<<16);
-		}
-		sprintf(temp, "brightness = %d", (R+G+B)/3);
-		textlabel(GenUIID(0), x+240, y+h/2+30, temp);
-		// show the value of the fgcolor
+		// show the value of the background color
 		sprintf(temp, "(%3d,%3d,%3d)", bgcolor & 0xff, (bgcolor>>8) & 0xff, (bgcolor>>16) & 0xff);
-		textlabel(GenUIID(0), x, y+=h, temp);
+		textlabel(GenUIID(0), x, y+h, temp);
+		// a check box to toggle editing brightness
+		checkbox( GenUIID(0), x+240, y+40, 30, 30, "Edit Brightness", & checkboxValue);
+		if( checkboxValue )
+		{
+			// a slider bar to tune the brightness of the background color
+			R = bgcolor & 0xff;  G = (bgcolor >> 8) & 0xff; B = (bgcolor >> 16) & 0xff;
+			slidervalue = (R + G + B)/3;
+			if (slider(GenUIID(0), x+150, y+h/2, h*2, w, 0, 255, 1, & slidervalue)) {
+				int chg = (int)slidervalue - (R + G + B)/3;
+				R = CLAMP(R+chg,0,255);
+				G = CLAMP(G+chg,0,255);
+				B = CLAMP(B+chg,0,255);
+				bgcolor = R | (G<<8) | (B<<16);
+			}
+			sprintf(temp, "brightness = %d", (R+G+B)/3);
+			textlabel(GenUIID(0), x+240, y+h/2+30, temp);
+		}
 		// a text input box
-		x = 30; y += 50 ;
+		x = 30; y += h+50 ;
 		if( textbox(GenUIID(0), x, y, 500, 40, editstring, sizeof(editstring)-1) ) {
 			// text is changed, you can do something here ...
+			SDL_SetWindowTitle(gMainWindow,editstring);
 		}
-		textlabel( GenUIID(0), x,y+50, editstring);
+		// a group of radio buttons
+		radio(GenUIID(0), x, y+ 80, 30, 30, "Good",      1, &radiovalue);
+		radio(GenUIID(0), x, y+120, 30, 30, "Excellent", 2, &radiovalue);
+		radio(GenUIID(0), x, y+160, 30, 30, "Great, wonderful",     3, &radiovalue);
+
+		// a list box
+		listbox(GenUIID(0), x+300, y+ 80, 200, 32*4, listitems, sizeof(listitems)/sizeof(listitems[0]), &liststart, &listvalue);
+		sprintf(temp, "You selected: %s", listitems[listvalue]);
+		textlabel(GenUIID(0), x+300, y+200, temp);
 	}
 	imgui_finish();
+}
+
+void display()
+{
+	SDL_SetRenderDrawColor(gMainRenderer, bgcolor&0xff, (bgcolor>>8)&0xff, (bgcolor>>16)&0xff, (bgcolor>>24)&0xff);
+	SDL_RenderClear(gMainRenderer);
+	// do UI part
+	doUI();
+	// below main rendering job
+	//   current we have nothing to do
 	// present the result
 	SDL_RenderPresent(gMainRenderer);
 }
 
 void runMainLoop()
 {
-	SDL_Event e; // 处理事件
 	imgui_init();
+	imgui_renderer(gMainRenderer);
+	imgui_font(gMainFont);
+
 	SDL_StartTextInput();
 	while ( !gGameover ) 
 	{
+		SDL_Event e; // 处理事件
 		while ( !gGameover && SDL_PollEvent(&e)) 
 		{
 			if((e.type == SDL_KEYUP && e.key.keysym.sym==SDLK_ESCAPE) ||
@@ -174,7 +210,7 @@ void runMainLoop()
 			{
 				gGameover = 1; // 终止应用程序
 			}
-			// other events ...
+			// UI event
 			imgui_update( &e );
 		}
 		// other tasks

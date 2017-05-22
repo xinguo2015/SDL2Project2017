@@ -23,8 +23,8 @@
 //               GenUIID(0)
 //
 // But, two GenUIID(0) calls at the same line will give the same ID.
-// So, if you call GenUIID(0) in a while/for loop body, the same ID is
-// obtained. In this case, you need call GenUIID with different N parameter: 
+// So, in a while/for loop body, GenUIID(0) will give you the same ID.
+// In this case, you need call GenUIID with different N parameter: 
 //
 //               GenUIID(N)
 //
@@ -44,23 +44,10 @@ typedef struct
 	int keymod;     // key modifier flags (such as shift pressed)
 	int keychar;    // char that is input
 	int lastwidget; // last widget that was processed
+	
 }
 UIState;
 
-enum
-{
-	UIMaxLabel = 64,
-	UIMaxText = 256,
-};
-
-typedef struct 
-{
-	SDL_Rect mRect;
-	char     mLabel[UIMaxLabel];
-	char     mText[UIMaxText];
-	int      mKBFocusHint;
-}
-UIParam;
 
 void imgui_init();
 void imgui_renderer(SDL_Renderer* ren);
@@ -69,13 +56,13 @@ void imgui_prepare();
 int  imgui_update(SDL_Event* e);
 void imgui_finish();
 
-int button(int id, int x, int y, int w, int h, char label[]);
-int slider(int id, int x, int y, int w, int h, double minv, double maxv, double * value, double delta);
+int button   (int id, int x, int y, int w, int h, char label[]);
+int checkbox (int id, int x, int y, int w, int h, char label[], int *value);
+int radio    (int id, int x, int y, int w, int h, char label[], int reference, int *value);
+int listbox  (int id, int x, int y, int w, int h, char*items[], int nitem, int *liststart, int *value);
+int slider   (int id, int x, int y, int w, int h, double minv, double maxv, double delta, double * value);
+int textbox  (int id, int x, int y, int w, int h, char textbuf[], int maxbuf);
 int textlabel(int id, int x, int y, char text[]);
-int textbox(int id, int x, int y, int w, int h, char textbuf[], int maxbuf);
-
-// style and customize settting
-void setButtonClickMovement(int m); // movement when clicked
 
 extern UIState gUIState;
 
