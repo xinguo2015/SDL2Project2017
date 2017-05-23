@@ -67,40 +67,38 @@ void imgui_finish()
 
 int imgui_update(SDL_Event* e)
 {
-	switch (e->type) {
-	case SDL_MOUSEMOTION:
-		// update mouse position
-		gUIState.mousex = e->motion.x;
-		gUIState.mousey = e->motion.y;
-		return 1;
-	case SDL_MOUSEBUTTONDOWN:
-		// update button down state if left-clicking
-		if (e->button.button == 1) {
-			gUIState.mousedown = 1;
-			return 1;
-		}
-		return 0;
-	case SDL_MOUSEBUTTONUP:
-		// update button down state if left-clicking
-		if (e->button.button == 1) {
-			gUIState.mousedown = 0;
-			return 1;
-		}
-		return 0;
-	case SDL_KEYDOWN:
-		// If a key is pressed, report it to the widgets
-		gUIState.keypressed = e->key.keysym.sym;
-		gUIState.keymod = e->key.keysym.mod;
-		return 1;
-	case SDL_TEXTINPUT:
-		gUIState.keychar = e->text.text[0];
-		return 1;
-	}
-	return 0;
+    switch (e->type) {
+        case SDL_MOUSEMOTION:
+            // update mouse position
+            gUIState.mousex = e->motion.x;
+            gUIState.mousey = e->motion.y;
+            return 1;
+        case SDL_MOUSEBUTTONDOWN:
+            // update button down state
+            if (e->button.button == 1) { //这里只处理鼠标**左**键
+                gUIState.mousedown = 1;
+                return 1;
+            }
+            return 0;
+        case SDL_MOUSEBUTTONUP:
+            // update button down state if left-clicking
+            if (e->button.button == 1) { //这里只处理鼠标**左**键
+                gUIState.mousedown = 0;
+                return 1;
+            }
+            return 0;
+        case SDL_KEYDOWN:
+            // a key is pressed
+            gUIState.keypressed = e->key.keysym.sym;
+            gUIState.keymod = e->key.keysym.mod;
+            return 1;
+        case SDL_TEXTINPUT:
+            // a character is input
+            gUIState.keychar = e->text.text[0];
+            return 1;
+    }
+    return 0;
 }
-
-
-
 
 SDL_Color makecolor(int color)
 {
@@ -169,21 +167,24 @@ int button(int id, int x, int y, int w, int h, char label[])
 			gUIState.activeitem = id;
 	}
 	// Draw button 
-	if (gUIState.hotitem == id)	{
-		if ( gUIState.mousedown ) {
-			// Button is both 'hot' and mouse is down
-			fillrect(x+guiButtonSink, y+guiButtonSink, w, h, guiColorHot);
-			drawstring(label, x+guiButtonSink+alignDX, y+guiButtonSink+alignDY, guiColorLabel);
-		} else {
-			// Button is merely 'hot'
-			fillrect(x, y, w, h, guiColorHot);
-			drawstring(label, x+alignDX, y+alignDY,guiColorLabel);
-		}
-	} else {
-		// button is not hot
-		fillrect(x, y, w, h, guiColorStill);
-		drawstring(label, x+alignDX, y+alignDY, guiColorLabel);
-	}
+    if (gUIState.hotitem == id)    {
+        // button is hot
+        if ( ! gUIState.mousedown ) {
+            // Button is merely 'hot', 绘制颜色为guiColorHot
+            fillrect(x, y, w, h, guiColorHot);
+            // 添加按钮的标签
+            drawstring(label, x+alignDX, y+alignDY,guiColorLabel);
+        } else {
+            // mouse is down，将按钮的位置进行稍许偏移，增加动感
+            fillrect(x+guiButtonSink, y+guiButtonSink, w, h, guiColorHot);
+            // 添加按钮的标签
+            drawstring(label, x+guiButtonSink+alignDX, y+guiButtonSink+alignDY, guiColorLabel);
+        }
+    } else {
+        // button is not hot
+        fillrect(x, y, w, h, guiColorStill);
+        drawstring(label, x+alignDX, y+alignDY, guiColorLabel);
+    }
 
 	// If button is hot and active, but mouse button is not down, 
 	// the user must have clicked the button.
@@ -194,7 +195,7 @@ int button(int id, int x, int y, int w, int h, char label[])
 		return 1;
 	}
 
-	// Otherwise, no clicky.
+	// Otherwise, no clicky (click and release).
 	return 0;
 }
 
@@ -212,8 +213,9 @@ int checkbox (int id, int x, int y, int w, int h, char label[], int *value)
 	drawrect(x,y, w, h, guiColorCheck);
 	drawstring(label, x+w+4, y-10, guiColorLabel);
 	if ( *value )
-	{
+	{	// is checked, then draw a cross
 		SDL_SetRenderDrawColor(guiRenderer, SPLIT_COLOR(guiColorCheck));
+		// draw the cross 
 		SDL_RenderDrawLine(guiRenderer, x,y, x+w-1, y+h-1);
 		SDL_RenderDrawLine(guiRenderer, x+1,y, x+w-1, y+h-2);
 		SDL_RenderDrawLine(guiRenderer, x,y+1, x+w-2, y+h-1);
@@ -493,7 +495,7 @@ int listbox (int id, int x, int y, int w, int h, char*items[], int nitem, int *l
 	if( nShow<nitem ) needslider = 1;
 
 	fillrect(x,y,w,h,guiColorStill);
-	if( needslider && slider(id+GenUIID(0), x+w-2, y+2, 20, h-4, (double)0, (double)(nitem-nShow), 1.0, &slidervalue) ) {
+	if( needslider && slider(id+GenUIID(0), x+w-2, y+2, 20, h-4, (double)0, (double)(nitem-nShow+1), 1.0, &slidervalue) ) {
 		*liststart = (int)(slidervalue+0.1);
 	}
 	
@@ -503,7 +505,7 @@ int listbox (int id, int x, int y, int w, int h, char*items[], int nitem, int *l
 	
 	for( k = 0; k<nShow; k++ ) {
 		int iid = k + *liststart;
-		if( listitem(id+GenUIID(k), x+2, y+2+k*guiItemHeight, w-4, guiItemHeight, items[iid], iid==*value) )
+		if( iid<nitem && listitem(id+GenUIID(k), x+2, y+2+k*guiItemHeight, w-4, guiItemHeight, items[iid], iid==*value) )
 			newvalue = iid;
 	}
 

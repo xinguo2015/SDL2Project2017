@@ -32,22 +32,21 @@
 
 typedef struct 
 {
-	int mousex;     // x - mouse position
-	int mousey;     // y - mouse position
-	int mousedown;  // 1 - yes, 0 - no
+    int mousex;     // x - mouse position 鼠标x坐标
+    int mousey;     // y - mouse position 鼠标y坐标
+    int mousedown;  // 1 - yes, 0 - no 是否按下鼠标
 
-	int hotitem;    // widget below the mouse cursor
-	int activeitem; // widget under interaction 
+    int hotitem;    // widget below the mouse cursor 光标下的组件ID
+    int activeitem; // widget under interaction 正在交互的组件ID
 
-	int kbditem;    // widget that has the keyboard focus
-	int keypressed; // key that was pressed
-	int keymod;     // key modifier flags (such as shift pressed)
-	int keychar;    // char that is input
-	int lastwidget; // last widget that was processed
-	
+    int keypressed; // key that was pressed 被按下的普通键
+    int keymod;     // key modifier (alt，ctrl, shift) 修饰键
+    int keychar;    // char that is input 输入的字符（ASCII码）
+
+    int lastwidget; // last widget that was processed 上一个接受键盘的组件
+    int kbditem;    // widget with keyboard focus 接受键盘输入的组件ID
 }
 UIState;
-
 
 void imgui_init();
 void imgui_renderer(SDL_Renderer* ren);
