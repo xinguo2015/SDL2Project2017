@@ -281,16 +281,17 @@ int slider(int id, int x, int y, int w, int h, double min, double max, double de
 	int cursize = 16; // cursor size
 	int border = 2;   // distance against the cursor
 	int hintsize = 2; // thickness of the focus hint
-	int vertical = w < h;
-	double v = (*value - min)/(max-min);
+	int vertical = w < h;// sliding direction
+	double posratio = CLAMP((*value - min)/(max-min), 0, 1);
 	int curpos;
 
-	if( w<cursize+border*2 ) w = cursize + border*2;
-	if( h<cursize+border*2 ) h = cursize + border*2;
+	w = CLAMP( w, cursize+border*2, w);
+	h = CLAMP( h, cursize+border*2, h);
 	if( vertical ) h = h<cursize*4 ? cursize*4 : h;
 	else           w = w<cursize*4 ? cursize*4 : w;
 
-	curpos = (int)( CLAMP(v,0,1) * ((vertical?h:w)-border*2-cursize) ) + border;
+	curpos = (int)( posratio * ((vertical?h:w) - border*2 - cursize) ) + border;
+	
 	// Check for hotness
 	if (regionhit(x, y, w, h)) {
 		gUIState.hotitem = id;
@@ -334,6 +335,7 @@ int slider(int id, int x, int y, int w, int h, double min, double max, double de
 			gUIState.keypressed = 0;
 			break;
 		case SDLK_UP:
+		case SDLK_LEFT:
 			// Slide slider up (if not at zero)
 			if (*value > 0) {
 				(*value) = CLAMP(*value - delta, 0, max);
@@ -341,6 +343,7 @@ int slider(int id, int x, int y, int w, int h, double min, double max, double de
 			}
 			break;
 		case SDLK_DOWN:
+		case SDLK_RIGHT:
 			// Slide slider down (if not at max)
 			if (*value < max) {
 				(*value) = CLAMP(*value + delta, 0, max);
@@ -354,12 +357,13 @@ int slider(int id, int x, int y, int w, int h, double min, double max, double de
 
 	// Update widget value
 	if (gUIState.activeitem == id) {
-		gUIState.kbditem = id;
-		v = vertical ? (gUIState.mousey - (y + border + cursize/2))/(double)(h-border*2-cursize)
-			:          (gUIState.mousex - (x + border + cursize/2))/(double)(w-border*2-cursize);
-		v = min + CLAMP(v,0,1)*(max-min);
-		if ( v != *value) {
-			*value = v;
+		double newvalue = vertical ? 
+			(gUIState.mousey - (y + border + cursize/2))/(double)(h-border*2-cursize) :
+			(gUIState.mousex - (x + border + cursize/2))/(double)(w-border*2-cursize) ;
+		newvalue = min + CLAMP(newvalue,0,1)*(max-min);
+		gUIState.kbditem = id; // let it accept keyboard
+		if (*value != newvalue ) {
+			*value = newvalue;
 			return 1;
 		}
 	}
@@ -423,6 +427,7 @@ int textbox(int id, int x, int y, int w, int h, char textbuf[], int maxbuf)
 				textbuf[--len] = 0;
 				textChanged = 1;
 			}
+			gUIState.keypressed = 0;
 			break;
 		}
 		if (gUIState.keychar >= 32 && gUIState.keychar < 127 && len < maxbuf ) {
@@ -483,12 +488,12 @@ static int listitem(int id, int x, int y, int w, int h, char label[], int select
 	return 0;
 }
 
-int listbox (int id, int x, int y, int w, int h, char*items[], int nitem, int *liststart, int *value)
+int listbox (int id, int x, int y, int w, int h, char*items[], int nitem, int *firstitem, int *selection)
 {
 	int needslider = 0;
-	double slidervalue = *liststart;
+	double slidervalue = *firstitem;
 	int nShow, k, wext;
-	int newvalue = *value;
+	int newSelection = *selection;
 	
 	
 	nShow = CLAMP( (h-4) / guiItemHeight, 1, nitem); 
@@ -496,7 +501,7 @@ int listbox (int id, int x, int y, int w, int h, char*items[], int nitem, int *l
 
 	fillrect(x,y,w,h,guiColorStill);
 	if( needslider && slider(id+GenUIID(0), x+w-2, y+2, 20, h-4, (double)0, (double)(nitem-nShow+1), 1.0, &slidervalue) ) {
-		*liststart = (int)(slidervalue+0.1);
+		*firstitem = (int)(slidervalue+0.1);
 	}
 	
 	wext = nShow<nitem ? w + 20 : w;
@@ -504,16 +509,16 @@ int listbox (int id, int x, int y, int w, int h, char*items[], int nitem, int *l
 	drawrect(x+1,y+1,wext-2,h-2,0x77777777);
 	
 	for( k = 0; k<nShow; k++ ) {
-		int iid = k + *liststart;
-		if( iid<nitem && listitem(id+GenUIID(k), x+2, y+2+k*guiItemHeight, w-4, guiItemHeight, items[iid], iid==*value) )
-			newvalue = iid;
+		int iid = k + *firstitem;
+		if( iid<nitem && listitem(id+GenUIID(k), x+2, y+2+k*guiItemHeight, w-4, guiItemHeight, items[iid], iid==*selection) )
+			newSelection = iid;
 	}
 
 	if( needslider )
 		drawrect(x+w-4, y, 2, h, 0x77777777);
 	
-	if( *value != newvalue ) {
-		*value = newvalue;
+	if( *selection != newSelection ) {
+		*selection = newSelection	;
 		return 1;
 	}
 	return 0;

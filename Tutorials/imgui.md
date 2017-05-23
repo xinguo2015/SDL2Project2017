@@ -1,5 +1,14 @@
 # IMGUI - Immediate Mode Graphics User Interface
 
+<div align=center>
+刘新国
+xgliu@cad.zju.edu.cn
+浙江大学计算机学院，浙江大学CAD&CG国家重点实验室
+2017年5月22日，第一稿
+
+</div>
+
+
 在传统的典型GUI中，与应用程序进行交互一般是通过**组件**（widget）完成。使用组件过程比较繁琐，包括：创建组件，显示组件，查询组件，向组件发送消息和数据，清理组件。尽管可以通过一些**所见即所得**的可视手段帮助我们完成一些步骤，但是仍然需要我们编写和维护大量代码：初始化组件，设计回调函数，清理组件。 
 
 <div align=center>
@@ -102,7 +111,9 @@ int imgui_update(SDL_Event* e)
 	return 0;
 }
 ```
+
 ### 按钮组件（button)
+
 IMGUI组件库的每一种组建都是一个函数。按钮组件的函数定义如下：
 ```
 int button(int id, int x, int y, int w, int h, char label[])
@@ -198,6 +209,7 @@ void imgui_prepare()
 }
 ```
 执行完所有的组件之后，需要进行一些事后清理工作：
+
 ```
 void imgui_finish()
 {
@@ -213,8 +225,466 @@ void imgui_finish()
 	gUIState.keychar = 0;
 }
 ```
-### 滑动条组件（slider)
-### 滑动条组件（slider)
-### 滑动条组件（slider)
-### 滑动条组件（slider)
-### 滑动条组件（slider)
+
+### 复选框组件checkbox
+
+勾选框组件具有一个正方形状的选择框和一个提示标签。如果用户选中了，那么在选择框内画一个X。 勾选框组件的定义如下：
+
+```
+int checkbox (int id, int x, int y, int w, int h, char label[], int *value)
+{
+```
+|参数|说明|
+|-   |-   |
+| id |  组件的唯一号  |
+| x, y| 组件的位置坐标（左上角） |
+| w, h| 组件的宽度w和高度h       |
+| label | 组件的标签字符串       |
+| value | 返回值：是否勾选 |
+
+首先确定组件是否具有鼠标热点
+```
+	// Check whether the button should be hot
+	if (regionhit(x, y, w, h))
+	{
+		gUIState.hotitem = id;
+		if (gUIState.activeitem == 0 && gUIState.mousedown)
+			gUIState.activeitem = id;
+	}
+```
+然后绘制组件的小正方形和提示标签
+```
+	// Draw radio button
+	fillrect(x,y, w, h, gUIState.hotitem == id ? guiColorHot : guiColorStill);
+	drawrect(x,y, w, h, guiColorCheck);
+	drawstring(label, x+w+4, y-10, guiColorLabel);
+```
+如果用户选中它了，那么绘制一个**X**
+```
+	if ( *value )
+	{	// is checked, then draw a cross
+		SDL_SetRenderDrawColor(guiRenderer, SPLIT_COLOR(guiColorCheck));
+		// draw the cross 
+		SDL_RenderDrawLine(guiRenderer, x,y, x+w-1, y+h-1);
+		SDL_RenderDrawLine(guiRenderer, x+1,y, x+w-1, y+h-2);
+		SDL_RenderDrawLine(guiRenderer, x,y+1, x+w-2, y+h-1);
+		SDL_RenderDrawLine(guiRenderer, x,y+h-1, x+w-1, y);
+		SDL_RenderDrawLine(guiRenderer, x+1,y+h-1, x+w-1, y+1);
+		SDL_RenderDrawLine(guiRenderer, x,y+h-2, x+w-2, y);
+	}
+```
+如果用户完成了点击操作，那么改变勾选组建的值
+```
+	// If button is hot and active, but mouse button is not down, 
+	// the user must have clicked the button.
+	if (gUIState.hotitem == id && 
+			gUIState.activeitem == id &&
+			gUIState.mousedown == 0 )
+	{
+		*value = !(*value);
+		return 1;
+	}
+
+	return 0;
+}
+```
+
+### 单选按钮组件
+单选按钮组件也具有一个正方形状的选择框和一个提示标签。如果用户选中了，那么在选择框内画一个标记。 单选按钮的组件函数定义如下：
+```
+int radio(int id, int x, int y, int w, int h, char label[], int reference, int *value)
+{
+```
+|参数|说明|
+|-   |-   |
+| id |  组件的唯一号  |
+| x, y| 组件的位置坐标（左上角） |
+| w, h| 组件的宽度w和高度h       |
+| label | 组件的标签字符串       |
+| reference | 组件所代表的选项值|
+| value | 用户的选项值 |
+
+首先确定组件是否具有鼠标热点
+
+```
+	// Check whether the button should be hot
+	if (regionhit(x, y, w, h))
+	{
+		gUIState.hotitem = id;
+		if (gUIState.activeitem == 0 && gUIState.mousedown)
+			gUIState.activeitem = id;
+	}
+```
+然后绘制组件的小正方形和提示标签
+```
+	// Draw radio button
+	fillrect(x,y, w, h, gUIState.hotitem == id ? guiColorHot : guiColorStill);
+	drawstring(label, x+w+4, y-10, guiColorLabel);
+```
+如果用户选中它了，那么绘制一个高亮的小正方形
+```
+	if ( reference == *value )
+	{
+		SDL_SetRenderDrawColor(guiRenderer, SPLIT_COLOR(0));
+		fillrect(x+w/4,y+h/4, w/2, h/2, guiColorCheck);
+	}
+```
+如果用户完成了点击操作，那么将本组件的选项作为用户的选项值
+```
+	// If button is hot and active, but mouse button is not down, 
+	// the user must have clicked the button.
+	if (gUIState.hotitem == id && gUIState.activeitem == id && gUIState.mousedown == 0 )
+	{
+		if( *value != reference )
+		{
+			*value = reference;
+			return 1;
+		}
+	}
+
+	return 0;
+}
+```
+
+### 滑动组件（slider)
+
+滑动组件的函数定义如下：
+```
+int slider(int id, int x, int y, int w, int h, double min, double max, double delta, double * value)
+{
+	int cursize = 16; // cursor size
+	int border = 2;   // distance against the cursor
+	int hintsize = 2; // thickness of the focus hint
+	int vertical = w < h;// sliding direction
+	int curpos;
+	double posratio;
+
+	// 调整滑动组件的尺寸，避免尺寸太小
+	w = CLAMP( w, cursize+border*2, w);
+	h = CLAMP( h, cursize+border*2, h);
+	if( vertical ) h = h<cursize*4 ? cursize*4 : h;
+	else           w = w<cursize*4 ? cursize*4 : w;
+
+	// 滑动条上滑动块的位置
+	posratio = CLAMP((*value - min)/(max-min), 0, 1);
+	curpos = (int)( posratio * ((vertical?h:w) - border*2 - cursize) ) + border;
+```
+|参数|说明|
+|-   |-   |
+| id |  组件的唯一号  |
+| x, y| 组件的位置坐标（左上角） |
+| w, h| 组件的宽度w和高度h       |
+| min,max | 最小值和最大值       |
+| delta   | 键盘操作的增量       |
+| value   | 指针，指向滑动组件值的变量|
+
+类似于button的组件函数，slider的组件函数确定自己是否为热点组件。
+```
+	// Check for hotness
+	if (regionhit(x, y, w, h)) {
+		gUIState.hotitem = id;
+		if (gUIState.activeitem == 0 && gUIState.mousedown)
+			gUIState.activeitem = id;
+	}
+```
+slider组件（还有其他种类的组件，例如文本输入组件等等）可以接受键盘操作，成为键盘输入的焦点。如果键盘的输入焦点还是空的，那么将自己设置为键盘焦点。
+```
+	// If no widget has keyboard focus, take it
+	if (gUIState.kbditem == 0)
+		gUIState.kbditem = id;
+```
+接下来是绘制slider组件。如果slider组件是键盘输入的组件，那么在组件周围画一个矩形框，展示给用户。
+```
+	// If we have keyboard focus, show it
+	if (gUIState.kbditem == id)
+		drawrect(x-hintsize, y-hintsize, w+hintsize*2, h+hintsize*2, guiColorFocus);
+```
+然后绘制slider组件的滑动条
+```
+	// render the bar
+	fillrect(x, y, w, h, guiColorStill   );
+```
+然后绘制slider组件的滑动块
+```
+	// render the cursor
+	if (gUIState.activeitem == id || gUIState.hotitem == id) {
+		fillrect( vertical ? x+(w-cursize)/2 : x+curpos,
+				vertical ? y + curpos : y+(h-cursize)/2, cursize, cursize, guiColorWhite);
+	} else {
+		fillrect( vertical ? x+(w-cursize)/2 : x+curpos,
+				vertical ? y + curpos : y+(h-cursize)/2, cursize, cursize, guiColorHot);
+	}
+```
+
+slider组件可以接受键盘的输入。具体包括：
+	1. 用 Tab 键在组件之间轮转热点
+	2. 用 Up/Lef 方向键减少组件值
+	3. 用 Down/Right 方向键增加组件值
+slider组件处理键盘输入的程序如下：
+
+```
+	// If we have keyboard focus, we'll need to process the keys
+	if (gUIState.kbditem == id)
+	{
+		switch (gUIState.keypressed)
+		{
+			case SDLK_TAB:
+				// If tab is pressed, lose keyboard focus.
+				// Next widget will grab the focus.
+				gUIState.kbditem = 0;
+				// If shift was also pressed, we want to move focus
+				// to the previous widget instead.
+				if (gUIState.keymod & KMOD_SHIFT)
+					gUIState.kbditem = gUIState.lastwidget;
+				// Also clear the key so that next widget
+				// won't process it
+				gUIState.keypressed = 0;
+				break;
+			case SDLK_UP:
+			case SDLK_LEFT:
+				// Slide slider up (if not at zero)
+				if (*value > 0) {
+					(*value) = CLAMP(*value - delta, 0, max);
+					return 1;
+				}
+				break;
+			case SDLK_DOWN:
+			case SDLK_RIGHT:
+				// Slide slider down (if not at max)
+				if (*value < max) {
+					(*value) = CLAMP(*value + delta, 0, max);
+					return 1;
+				}
+				break;
+		}
+	}
+	// 为了反向轮动键盘输入焦点
+	gUIState.lastwidget = id;
+```
+最后根据滑动块位置（即鼠标的位置），确定slider组件的值：
+```
+	// Update widget value
+	if (gUIState.activeitem == id) {
+		double newvalue = vertical ? 
+			(gUIState.mousey - (y + border + cursize/2))/(double)(h-border*2-cursize) :
+			(gUIState.mousex - (x + border + cursize/2))/(double)(w-border*2-cursize) ;
+		newvalue = min + CLAMP(newvalue,0,1)*(max-min);
+		gUIState.kbditem = id; // let it accept keyboard
+		if (*value != newvalue ) {
+			*value = newvalue;
+			return 1; // 表示值改变了
+		}
+	}
+
+	return 0;
+}
+```
+
+### 文本输入组件(textbox)
+
+文本输入的组件函数定义如下：
+```
+int textbox(int id, int x, int y, int w, int h, char textbuf[], int maxbuf)
+{
+	int len = strlen(textbuf);
+	int cursorpos = 0;
+	int textChanged = 0;
+```
+|参数|说明|
+|-   |-   |
+| id |  组件的唯一号  |
+| x, y| 组件的位置坐标（左上角） |
+| w, h| 组件的宽度w和高度h       |
+| textbuf | 文本字符串\0结尾       |
+| maxbuf  | 最长长度限制      |
+
+类似地，首先确定组件是否为热点组件：
+```
+	// Check whether the button should be hot
+	if (regionhit(x, y, w, h))
+	{
+		gUIState.hotitem = id;
+		if (gUIState.activeitem == 0 && gUIState.mousedown)
+			gUIState.activeitem = id;
+	}
+```
+如果键盘焦点是空的，将自己设置为键盘焦点：
+```
+	// If no widget has keyboard focus, take it
+	if (gUIState.kbditem == 0)
+		gUIState.kbditem = id;
+```
+接下来绘制组件。如果是键盘焦点，那么显示一个框，告诉用户：
+```
+	// If we have keyboard focus, show it
+	if (gUIState.kbditem == id)
+		drawrect(x-2, y-2, w+4, h+4, 0xffddee);
+```
+然后绘制文本输入框背景。如果是鼠标热点或者键盘焦点，那么具有明亮的底色。
+```
+	// Render the text box 
+	if ( gUIState.hotitem == id || gUIState.activeitem == id ) {
+		// 'hot' or 'active'
+		fillrect(x, y, w, h, guiColorHot);
+	} else {
+		fillrect(x, y, w, h, guiColorStill   );
+	}
+```
+然后，绘制文本字符串：
+```
+	// show text
+	cursorpos = x+4 + drawstring(textbuf, x+4, y-6, guiColorEdit).w;
+	// Render cursor if we have keyboard focus
+```
+如果用户正在输入（是键盘的输入焦点），那么显示一个闪烁的光标 "\_"
+```
+	if ( gUIState.kbditem == id && (SDL_GetTicks() >> 8) & 1)
+		drawstring("_", cursorpos, y-6, guiColorEdit);
+```
+然后，处理键盘的输入，更新文本字符串：
+```
+	// If we have keyboard focus, we'll need to process the keys
+	if (gUIState.kbditem == id)
+	{
+		switch (gUIState.keypressed)
+		{
+			case SDLK_TAB:
+			case SDLK_RETURN:
+				// If tab is pressed, lose keyboard focus.
+				// Next widget will grab the focus.
+				gUIState.kbditem = 0;
+				// If shift was also pressed, we want to move focus
+				// to the previous widget instead.
+				if (gUIState.keypressed==SDLK_TAB && gUIState.keymod & KMOD_SHIFT)
+					gUIState.kbditem = gUIState.lastwidget;
+				// Also clear the key so that next widget
+				// won't process it
+				gUIState.keypressed = 0;
+				break;
+			case SDLK_BACKSPACE:
+				// 删除末尾字符
+				if( len > 0 ) {
+					textbuf[--len] = 0;
+					textChanged = 1;
+				}
+				gUIState.keypressed = 0;
+				break;
+		}
+		if (gUIState.keychar >= 32 && gUIState.keychar < 127 && len < maxbuf ) {
+			textbuf[len] = gUIState.keychar;
+			textbuf[++len] = 0;
+			textChanged = 1;
+		}
+	}
+
+	// for reverse loop keyboard focus
+	gUIState.lastwidget = id;
+
+```
+最后，如果用户点击了本组件，那么让其接收键盘焦点：
+```
+	// If the textbox is hot and active, but mouse button is not
+	// down, the user must have clicked the button.
+	// So, assign it with the keyboard focus
+	if (gUIState.hotitem == id && gUIState.activeitem == id &&
+		gUIState.mousedown == 0 )
+		gUIState.kbditem = id;
+
+	// 返回文本是否被编辑过
+	return textChanged;
+}
+```
+
+### 列表组件（listbox)
+
+列表组件显示一个选项列表，表中的选项是一个字符串（复杂的列表选项也可以是图像或其他的东西）。用户通过鼠标点击，获得想要的选项。用户选项的次序值通过变量value返回。 列表的组件函数定义如下：
+```
+int listbox (int id, int x, int y, int w, int h, char * items[], int nitem, 
+	int * firstitem, int * selection)
+{
+	int needslider = 0;
+	double slidervalue = *firstitem;
+	int nShow, k, wext;
+	int newSelection = *selection;
+```
+|参数|说明|
+|-   |-   |
+| id |  组件的唯一号  |
+| x, y| 组件的位置坐标（左上角） |
+| w, h| 组件的宽度w和高度h       |
+| items | 候选项目字符串指针     |
+| nitem | 候选想个数 |
+| firstitem | 显示的第一个候选项目|
+| selection | 被选项目的序号|
+
+首先确定能够显示多少个候选项目。如果不能一次显示所有选项，那么需要添加一个滑动条组件，供用户前后翻页。
+```
+	nShow = CLAMP( (h-4) / guiItemHeight, 1, nitem); 
+	if( nShow<nitem ) needslider = 1;
+
+	fillrect(x,y,w,h,guiColorStill);
+	if( needslider && slider(id+GenUIID(0), x+w-2, y+2, 20, h-4, 
+		(double)0, (double)(nitem-nShow+1), 1.0, &slidervalue) ) {
+		*firstitem = (int)(slidervalue+0.1);
+	}
+```
+然后绘制项目列表。绘制列表的时候调用一个子组件listitem，对候选条目进行绘制。
+```
+	wext = nShow<nitem ? w + 20 : w;
+	drawrect(x,  y,  wext,  h,  0x77777777);
+	drawrect(x+1,y+1,wext-2,h-2,0x77777777);
+
+	for( k = 0; k<nShow; k++ ) {
+		int iid = k + *firstitem;
+		if( iid<nitem && listitem(id+GenUIID(k), x+2, y+2+k*guiItemHeight, w-4, 
+			guiItemHeight, items[iid], iid==*value) )
+			newSelection = iid;
+	}
+
+	if( needslider )
+		drawrect(x+w-4, y, 2, h, 0x77777777);
+```
+最后，判断用户是否改变选择：
+```
+	if( *selection != newSelection ) {
+		*selection = newSelection;
+		return 1;
+	}
+	return 0;
+}
+```
+
+#### 项目子组件listitem
+项目组件listitem与按钮组件button非常类似，这里不再赘述。
+```
+static int listitem(int id, int x, int y, int w, int h, char label[], int selected)
+{
+	if (regionhit(x, y, w, h))
+	{
+		gUIState.hotitem = id;
+		if (gUIState.activeitem == 0 && gUIState.mousedown)
+			gUIState.activeitem = id;
+	}
+
+	if (gUIState.hotitem == id	&& gUIState.mousedown )
+		selected = 1;
+
+	if (gUIState.hotitem == id)
+		fillrect(x, y, w, h, guiColorHot);
+	else if ( selected )
+		fillrect(x, y, w, h, guiColorPicked);
+	else
+		fillrect(x, y, w, h, guiColorStill);
+	drawstring(label, x+5, y-10, guiColorLabel);
+
+	// If button is hot and active, but mouse button is not down, 
+	// the user must have clicked the button.
+	if (gUIState.hotitem == id && gUIState.activeitem == id && gUIState.mousedown == 0 )
+	{
+		return 1;
+	}
+
+	// Otherwise, no clicky.
+	return 0;
+}
+```
