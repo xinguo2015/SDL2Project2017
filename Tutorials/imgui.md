@@ -71,13 +71,12 @@ void imgui_init()
 {
 	memset(&gUIState,0,sizeof(gUIState));
 }
-。
 ```
 这里我们将所有的成员变量初始化为0。
 
 在SDL程序中，记录键盘和鼠标状态的代码如下：
 ```
-int imgui_update(SDL_Event* e)
+int imgui_handle(SDL_Event* e)
 {
 	switch (e->type) {
 		case SDL_MOUSEMOTION:
