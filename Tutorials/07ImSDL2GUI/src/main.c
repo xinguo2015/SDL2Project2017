@@ -82,8 +82,12 @@ void endApp()
 	SDL_Quit();
 }
 
+// GUI设计到的一些变量。它们不能是doUI的局部变量， 
+//   否则每一次调用doUI处理的都是不同的变量。
+// 这里我们将他们定义为全局变量。
+
 char editstring[50] = "Here to set window title";
-int  bgcolor        = 119|(154<<8)|(209<<16);
+int  bgcolor        = 90|(255<<8)|(255<<16);
 int  checkboxValue  = 1;
 int  radiovalue     = 1;
 int  liststart      = 0;
@@ -125,6 +129,8 @@ void doUI()
 			// this button is clicked, quit the program
 			SDL_Event ev;
 			ev.type = SDL_QUIT; 
+			// if call exit to quit, then no chance to clean app stuff
+			// so, we push a quit event to the event queue
 			SDL_PushEvent( &ev );
 		}
 
@@ -168,12 +174,18 @@ void doUI()
 			// text is changed, you can do something here ...
 			SDL_SetWindowTitle(gMainWindow,editstring);
 		}
+		// draw a box frame
+		SDL_RenderDrawLine(gMainRenderer, x-5,   y+70,     x+250, y+70);
+		SDL_RenderDrawLine(gMainRenderer, x-5,   y+70+130, x+250, y+70+130);
+		SDL_RenderDrawLine(gMainRenderer, x-5,   y+70,     x-5,   y+70+130);
+		SDL_RenderDrawLine(gMainRenderer, x+250, y+70,     x+250, y+70+130);
 		// a group of radio buttons
 		radio(GenUIID(0), x, y+ 80, 30, 30, "Good",      1, &radiovalue);
 		radio(GenUIID(0), x, y+120, 30, 30, "Excellent", 2, &radiovalue);
 		radio(GenUIID(0), x, y+160, 30, 30, "Great, wonderful",     3, &radiovalue);
 
 		// a list box
+		y -= 10;
 		listbox(GenUIID(0), x+300, y+ 80, 200, 32*4, listitems, sizeof(listitems)/sizeof(listitems[0]), &liststart, &listvalue);
 		sprintf(temp, "You selected: %s", listitems[listvalue]);
 		textlabel(GenUIID(0), x+300, y+200, temp);
@@ -211,7 +223,7 @@ void runMainLoop()
 				gGameover = 1; // 终止应用程序
 			}
 			// UI event
-			imgui_update( &e );
+			imgui_handle( &e );
 		}
 		// other tasks
 		display();

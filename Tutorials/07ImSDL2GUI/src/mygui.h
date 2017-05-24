@@ -52,7 +52,7 @@ void imgui_init();
 void imgui_renderer(SDL_Renderer* ren);
 void imgui_font(TTF_Font* font);
 void imgui_prepare();
-int  imgui_update(SDL_Event* e);
+int  imgui_handle(SDL_Event* e);
 void imgui_finish();
 
 int button   (int id, int x, int y, int w, int h, char label[]);

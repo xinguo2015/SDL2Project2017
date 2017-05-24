@@ -689,3 +689,170 @@ static int listitem(int id, int x, int y, int w, int h, char label[], int select
 	return 0;
 }
 ```
+### IMGUI 使用范例
+####初始化
+IMGUI的初始化和处理工作都是在应用程序的主循环中完成。 初始化的工作包括三点：
+- 初始化imgui
+- 设置imgui的渲染器
+- 设置imgui的字体
+
+具体代码如下。要求gMainRenderer和gMainFont已经正确创建。
+```
+void runMainLoop()
+{
+	imgui_init();
+	imgui_renderer(gMainRenderer);
+	imgui_font(gMainFont);
+```
+以下是应用程序主循环。
+```
+	SDL_StartTextInput(); // 准备文本输入
+	while ( !gGameover ) 
+	{
+		SDL_Event e; // 处理事件
+		while ( !gGameover && SDL_PollEvent(&e)) 
+		{
+			// 处理事件
+			if((e.type == SDL_KEYUP && e.key.keysym.sym==SDLK_ESCAPE) ||
+					e.type == SDL_QUIT) //user close window or press ESC key
+			{
+				gGameover = 1; // 终止应用程序
+			}
+			// 将其它的事件交给GUI处理
+			imgui_handle( &e );
+		}
+		// 显示任务
+		display();
+		// 延时10ms，避免独霸CPU
+		SDL_Delay(10); 
+	}
+	SDL_StopTextInput();
+}
+``` 
+如果在GUI中用到文本输入，那么需要事先打开文本输入。在事件处理的循环中，需要将键盘和鼠标等事件交给imgui_handle函数处理。而绘制的工作在用户自定义的display函数中完成。
+
+#### display函数
+display函数的主要任务是绘制画面，包含应用程序需要显示的内容和图形交互组件。
+```
+void display()
+{
+	SDL_SetRenderDrawColor(gMainRenderer, bgcolor&0xff, (bgcolor>>8)&0xff, (bgcolor>>16)&0xff, (bgcolor>>24)&0xff);
+	SDL_RenderClear(gMainRenderer);
+	// do UI part
+	doUI();
+	// below main rendering job
+	//   current we have nothing to do
+	// present the result
+	SDL_RenderPresent(gMainRenderer);
+}
+```
+在display函数中，我们调用了GUI的绘制和处理函数doUI。
+```
+// GUI设计到的一些变量。它们不能是doUI的局部变量，
+//   否则每一次调用doUI处理的都是不同的变量。
+// 这里我们将他们定义为全局变量。
+char editstring[50] = "Here to set window title";
+int  bgcolor        = 90|(255<<8)|(255<<16);
+int  checkboxValue  = 1;
+int  radiovalue     = 1;
+int  liststart      = 0;
+int  listvalue      = 1;
+char*listitems[]    = { "1 Apple", 
+	"2 Pear", 
+	"3 Grape", 
+	"4 Rice", 
+	"5 Water", 
+	"6 Salt", 
+	"7 Drink", 
+	"No MORE",
+};
+
+void doUI()
+{
+	imgui_prepare(); 
+	{
+		int x = 30, y = 50, w = 80, h = 48;
+		int k, R, G, B;
+		double slidervalue;
+		char temp[64];
+
+		// put a text label 
+		textlabel(GenUIID(0), x, y, "Below are 10 buttons generated in a for loop");
+		// put an array of buttons
+		y+= 50;
+		for( k = 0; k<10; k++ ) // 10 buttons
+			button(GenUIID(k), x+(w+10)*k, y, w, h, "array");
+		// two more button
+		y += 100;
+		button(GenUIID(0), x,     y, w, h, "Click");  //put a button 
+		button(GenUIID(0), x+100, y, w, h, "me");     //put a button 
+		// another button
+		if (button(GenUIID(0), x, y+100, w, h, "color" ))
+			bgcolor = SDL_GetTicks() * 0xc3cac51a;
+		// a quit button
+		if (button(GenUIID(0), x+100, y+100, w, h, "quit")) { 
+			// this button is clicked, quit the program
+			SDL_Event ev;
+			ev.type = SDL_QUIT; 
+			// if call exit to quit, then no chance to clean app stuff
+			// so, we push a quit event to the event queue
+			SDL_PushEvent( &ev );
+		}
+
+		// slider bars to change the window's background color
+		x = 300; w = 22; h = 200;
+		// a slider bar to tune the R channel of the background color
+		slidervalue = bgcolor & 0xff; 
+		if( slider(GenUIID(0), x, y, w, h, 0, 255, 1, & slidervalue)) 
+			bgcolor = (bgcolor & 0xffff00) | (int)slidervalue;
+		// a slider bar to tune the G channel of the background color
+		slidervalue = (bgcolor >> 8) & 0xff;
+		if( slider(GenUIID(0), x+50, y, w, h, 0, 255, 1, & slidervalue) )
+			bgcolor = (bgcolor & 0xff00ff) | ((int)slidervalue) << 8;
+		// a slider bar to tune the B channel of the background color
+		slidervalue = (bgcolor >> 16) & 0xff;
+		if (slider(GenUIID(0), x+100, y, w, h, 0, 255, 1, & slidervalue))
+			bgcolor = (bgcolor & 0x00ffff) | ((int)(slidervalue) << 16);
+		// show the value of the background color
+		sprintf(temp, "(%3d,%3d,%3d)", bgcolor & 0xff, (bgcolor>>8) & 0xff, (bgcolor>>16) & 0xff);
+		textlabel(GenUIID(0), x, y+h, temp);
+		// a check box to toggle editing brightness
+		checkbox( GenUIID(0), x+240, y+40, 30, 30, "Edit Brightness", & checkboxValue);
+		if( checkboxValue )
+		{
+			// a slider bar to tune the brightness of the background color
+			R = bgcolor & 0xff;  G = (bgcolor >> 8) & 0xff; B = (bgcolor >> 16) & 0xff;
+			slidervalue = (R + G + B)/3;
+			if (slider(GenUIID(0), x+150, y+h/2, h*2, w, 0, 255, 1, & slidervalue)) {
+				int chg = (int)slidervalue - (R + G + B)/3;
+				R = CLAMP(R+chg,0,255);
+				G = CLAMP(G+chg,0,255);
+				B = CLAMP(B+chg,0,255);
+				bgcolor = R | (G<<8) | (B<<16);
+			}
+			sprintf(temp, "brightness = %d", (R+G+B)/3);
+			textlabel(GenUIID(0), x+240, y+h/2+30, temp);
+		}
+		// a text input box
+		x = 30; y += h+50 ;
+		if( textbox(GenUIID(0), x, y, 500, 40, editstring, sizeof(editstring)-1) ) {
+			// text is changed, you can do something here ...
+			SDL_SetWindowTitle(gMainWindow,editstring);
+		}
+		// a group of radio buttons
+		SDL_RenderDrawRect(gMainRenderer, x, y+80, 200, 
+		radio(GenUIID(0), x, y+ 80, 30, 30, "Good",             1, &radiovalue);
+		radio(GenUIID(0), x, y+120, 30, 30, "Excellent",        2, &radiovalue);
+		radio(GenUIID(0), x, y+160, 30, 30, "Great, wonderful", 3, &radiovalue);
+
+		// a list box
+		listbox(GenUIID(0), x+300, y+ 80, 200, 32*4, 
+			listitems, sizeof(listitems)/sizeof(listitems[0]), &liststart, &listvalue);
+		sprintf(temp, "You selected: %s", listitems[listvalue]);
+		textlabel(GenUIID(0), x+300, y+200, temp);
+	}
+	imgui_finish();
+}
+```
+在进行组件绘制和处理之前，必须先调用imgui_prepare函数。最后还要调用imgui_finish函数。
+

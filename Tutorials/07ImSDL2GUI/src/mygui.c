@@ -65,7 +65,7 @@ void imgui_finish()
 	gUIState.keychar = 0;
 }
 
-int imgui_update(SDL_Event* e)
+int imgui_handle(SDL_Event* e)
 {
     switch (e->type) {
         case SDL_MOUSEMOTION:
