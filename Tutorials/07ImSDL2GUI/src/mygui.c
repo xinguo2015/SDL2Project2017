@@ -337,8 +337,8 @@ int slider(int id, int x, int y, int w, int h, double min, double max, double de
 		case SDLK_UP:
 		case SDLK_LEFT:
 			// Slide slider up (if not at zero)
-			if (*value > 0) {
-				(*value) = CLAMP(*value - delta, 0, max);
+			if (*value > min) {
+				(*value) = CLAMP(*value - delta, min, max);
 				return 1;
 			}
 			break;
@@ -346,7 +346,7 @@ int slider(int id, int x, int y, int w, int h, double min, double max, double de
 		case SDLK_RIGHT:
 			// Slide slider down (if not at max)
 			if (*value < max) {
-				(*value) = CLAMP(*value + delta, 0, max);
+				(*value) = CLAMP(*value + delta, min, max);
 				return 1;
 			}
 			break;
