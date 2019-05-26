@@ -14,6 +14,9 @@ runall:
 	#$(foreach name, $(projs), ./$(name)/build/$(name) ../Media;)
 	$(foreach name, $(projs), ./$(name)/build/$(name);)
 
+buildir:
+	$(foreach name, $(projs), mkdir -p $(name)/build;)
+
 clearBuild:
 	$(foreach name, $(projs), rm -rf $(name)/build/*;)
 

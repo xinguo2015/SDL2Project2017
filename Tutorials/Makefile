@@ -6,6 +6,9 @@ test:
 	echo the projects are:
 	$(foreach d, $(projs), echo  $(d); )
 
+builddir:
+	$(foreach name, $(projs), mkdir -p $(name)/build; )
+
 all:
 	$(foreach name, $(projs), \
 		cd $(name)/build && cmake .. && make && cd ../../;)
